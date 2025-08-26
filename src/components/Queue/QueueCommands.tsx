@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { IoLogOutOutline } from "react-icons/io5"
+import { LogOut, Mic, MicOff, MessageCircle, Command } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "../ui/dialog"
 
 interface QueueCommandsProps {
@@ -80,10 +80,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
       <div className="text-xs text-white/90 liquid-glass-bar py-1 px-4 flex items-center justify-center gap-4 draggable-area">
         {/* Show/Hide */}
         <div className="flex items-center gap-2">
-          <span className="text-[11px] leading-none">Show/Hide</span>
+          <span className="text-[11px] leading-none">表示/非表示</span>
           <div className="flex gap-1">
-            <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-              ⌘
+            <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+              <Command className="w-3 h-3" />
             </button>
             <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
               B
@@ -99,8 +99,8 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-[11px] leading-none">Solve</span>
             <div className="flex gap-1">
-              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                ⌘
+              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+                <Command className="w-3 h-3" />
               </button>
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 ↵
@@ -117,9 +117,9 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
             type="button"
           >
             {isRecording ? (
-              <span className="animate-pulse">● Stop Recording</span>
+              <><MicOff className="w-3 h-3 mr-1" /><span className="animate-pulse">録音停止</span></>
             ) : (
-              <span>🎤 Record Voice</span>
+              <><Mic className="w-3 h-3 mr-1" /><span>音声録音</span></>
             )}
           </button>
         </div>
@@ -131,7 +131,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
             onClick={onChatToggle}
             type="button"
           >
-            💬 Chat
+            <MessageCircle className="w-3 h-3 mr-1" />チャット
           </button>
         </div>
 
@@ -154,17 +154,17 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
               ref={tooltipRef}
               className="absolute top-full right-0 mt-2 w-80"
             >
-              <div className="p-3 text-xs bg-black/80 backdrop-blur-md rounded-lg border border-white/10 text-white/90 shadow-lg">
+              <div className="p-3 text-xs bg-black/80 backdrop-blur-md rounded-lg border border-white/10 text-white/90">
                 <div className="space-y-4">
-                  <h3 className="font-medium truncate">Keyboard Shortcuts</h3>
+                  <h3 className="font-medium truncate">キーボードショートカット</h3>
                   <div className="space-y-3">
                     {/* Toggle Command */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="truncate">Toggle Window</span>
+                        <span className="truncate">ウィンドウ切り替え</span>
                         <div className="flex gap-1 flex-shrink-0">
-                          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                            ⌘
+                          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                            <Command className="w-2 h-2" />
                           </span>
                           <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                             B
@@ -172,16 +172,16 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                         </div>
                       </div>
                       <p className="text-[10px] leading-relaxed text-white/70 truncate">
-                        Show or hide this window.
+                        このウィンドウを表示または非表示にします。
                       </p>
                     </div>
                     {/* Screenshot Command */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="truncate">Take Screenshot</span>
+                        <span className="truncate">スクリーンショットを撮る</span>
                         <div className="flex gap-1 flex-shrink-0">
-                          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                            ⌘
+                          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                            <Command className="w-2 h-2" />
                           </span>
                           <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                             H
@@ -189,19 +189,17 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                         </div>
                       </div>
                       <p className="text-[10px] leading-relaxed text-white/70 truncate">
-                        Take a screenshot of the problem description. The tool
-                        will extract and analyze the problem. The 5 latest
-                        screenshots are saved.
+                        問題の説明のスクリーンショットを撮ります。ツールは問題を抽出して分析します。最新のスクリーンショット5枚が保存されます。
                       </p>
                     </div>
 
                     {/* Solve Command */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="truncate">Solve Problem</span>
+                        <span className="truncate">問題を解決</span>
                         <div className="flex gap-1 flex-shrink-0">
-                          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                            ⌘
+                          <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                            <Command className="w-2 h-2" />
                           </span>
                           <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                             ↵
@@ -209,7 +207,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                         </div>
                       </div>
                       <p className="text-[10px] leading-relaxed text-white/70 truncate">
-                        Generate a solution based on the current problem.
+                        現在の問題に基づいた解決策を生成します。
                       </p>
                     </div>
                   </div>
@@ -225,16 +223,16 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         {/* Sign Out Button - Moved to end */}
         <button
           className="text-red-500/70 hover:text-red-500/90 transition-colors hover:cursor-pointer"
-          title="Sign Out"
+          title="サインアウト"
           onClick={() => window.electronAPI.quitApp()}
         >
-          <IoLogOutOutline className="w-4 h-4" />
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
       {/* Audio Result Display */}
       {audioResult && (
         <div className="mt-2 p-2 bg-white/10 rounded text-white text-xs max-w-md">
-          <span className="font-semibold">Audio Result:</span> {audioResult}
+          <span className="font-semibold">音声結果:</span> {audioResult}
         </div>
       )}
       {/* Chat Dialog Overlay */}

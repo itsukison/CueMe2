@@ -3,7 +3,7 @@ import fs from "fs"
 
 export class LLMHelper {
   private model: GenerativeModel
-  private readonly systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation (not just coding). For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps.`
+  private readonly systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation (not just coding). For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Prioritize brevity while maintaining clarity. Format responses in a structured way with clear sections when appropriate.`
 
   constructor(apiKey: string) {
     const genAI = new GoogleGenerativeAI(apiKey)
@@ -37,7 +37,7 @@ export class LLMHelper {
   "context": "Relevant background or context from the images.",
   "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
   "reasoning": "Explanation of why these suggestions are appropriate."
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`
+}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks. When responding in Japanese, keep responses concise and structured for Japanese interview style.`
 
       const result = await this.model.generateContent([prompt, ...imageParts])
       const response = await result.response
@@ -58,7 +58,7 @@ export class LLMHelper {
     "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
     "reasoning": "Explanation of why these suggestions are appropriate."
   }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`
+}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`
 
     console.log("[LLMHelper] Calling Gemini LLM for solution...");
     try {
@@ -87,7 +87,7 @@ export class LLMHelper {
     "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
     "reasoning": "Explanation of why these suggestions are appropriate."
   }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`
+}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks. When responding in Japanese, keep responses concise and structured for Japanese interview style.`
 
       const result = await this.model.generateContent([prompt, ...imageParts])
       const response = await result.response
@@ -110,7 +110,7 @@ export class LLMHelper {
           mimeType: "audio/mp3"
         }
       };
-      const prompt = `${this.systemPrompt}\n\nDescribe this audio clip in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the audio. Do not return a structured JSON object, just answer naturally as you would to a user.`;
+      const prompt = `${this.systemPrompt}\n\nDescribe this audio clip in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the audio. Do not return a structured JSON object, just answer naturally as you would to a user. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`;
       const result = await this.model.generateContent([prompt, audioPart]);
       const response = await result.response;
       const text = response.text();
@@ -129,7 +129,7 @@ export class LLMHelper {
           mimeType
         }
       };
-      const prompt = `${this.systemPrompt}\n\nDescribe this audio clip in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the audio. Do not return a structured JSON object, just answer naturally as you would to a user and be concise.`;
+      const prompt = `${this.systemPrompt}\n\nDescribe this audio clip in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the audio. Do not return a structured JSON object, just answer naturally as you would to a user and be concise. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`;
       const result = await this.model.generateContent([prompt, audioPart]);
       const response = await result.response;
       const text = response.text();
@@ -149,7 +149,7 @@ export class LLMHelper {
           mimeType: "image/png"
         }
       };
-      const prompt = `${this.systemPrompt}\n\nDescribe the content of this image in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the image. Do not return a structured JSON object, just answer naturally as you would to a user. Be concise and brief.`;
+      const prompt = `${this.systemPrompt}\n\nDescribe the content of this image in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the image. Do not return a structured JSON object, just answer naturally as you would to a user. Be concise and brief. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`;
       const result = await this.model.generateContent([prompt, imagePart]);
       const response = await result.response;
       const text = response.text();
@@ -162,9 +162,21 @@ export class LLMHelper {
 
   public async chatWithGemini(message: string): Promise<string> {
     try {
-      const result = await this.model.generateContent(message);
+      // Add instruction for Japanese responses if detected
+      const japaneseInstruction = "Keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Use Japanese when appropriate.";
+      const enhancedMessage = message + (message.includes("日本語") || message.includes("Japanese") ? `\n${japaneseInstruction}` : "");
+      
+      const result = await this.model.generateContent(enhancedMessage);
       const response = await result.response;
-      return response.text();
+      let text = response.text();
+      
+      // If responding in Japanese, ensure brevity
+      if (text.includes("日本") || text.includes("です") || text.includes("ます")) {
+        // Add a gentle reminder about concise responses for Japanese
+        text = text + "\n\n(簡潔で明確な日本語の回答を心がけています)";
+      }
+      
+      return text;
     } catch (error) {
       console.error("[LLMHelper] Error in chatWithGemini:", error);
       throw error;

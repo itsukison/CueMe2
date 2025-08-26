@@ -64,8 +64,8 @@ export class ProcessingHelper {
         const imageResult = await this.llmHelper.analyzeImageFile(lastPath);
         const problemInfo = {
           problem_statement: imageResult.text,
-          input_format: { description: "Generated from screenshot", parameters: [] as any[] },
-          output_format: { description: "Generated from screenshot", type: "string", subtype: "text" },
+          input_format: { description: "スクリーンショットから生成", parameters: [] as any[] },
+          output_format: { description: "スクリーンショットから生成", type: "string", subtype: "text" },
           complexity: { time: "N/A", space: "N/A" },
           test_cases: [] as any[],
           validation_type: "manual",

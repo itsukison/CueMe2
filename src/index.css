@@ -2,22 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Liquid Glass Effect Base */
+/* Dark Liquid Glass Effect Base */
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(16px) saturate(180%) brightness(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(120%);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px) saturate(180%) brightness(80%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(80%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 1rem;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 }
 
-/* Enhanced liquid glass with shimmer effect */
+/* Enhanced dark liquid glass with subtle shimmer effect */
 .liquid-glass::before {
   content: '';
   position: absolute;
@@ -28,7 +24,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05),
     transparent
   );
   animation: shimmer 3s ease-in-out infinite;
@@ -50,14 +46,14 @@
 /* Fallback for browsers without backdrop-filter support */
 @supports not (backdrop-filter: blur()) {
   .liquid-glass {
-    background: rgba(255, 255, 255, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 }
 
 /* Add a subtle outline to ensure visibility */
 .liquid-glass:before {
-  outline: 1px solid rgba(255, 255, 255, 0.1);
+  outline: 1px solid rgba(255, 255, 255, 0.05);
   outline-offset: -1px;
 }
 
@@ -91,21 +87,17 @@ button, input, select, textarea, .interactive {
 
 /* Add visual feedback for draggable area */
 .draggable-area:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
 
-/* Dark theme liquid glass variant */
+/* Dark theme liquid glass variant - enhanced */
 .liquid-glass-dark {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(16px) saturate(180%) brightness(80%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(80%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px) saturate(180%) brightness(60%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(60%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Ensure content is not blurred */
@@ -116,31 +108,23 @@ button, input, select, textarea, .interactive {
   -webkit-backdrop-filter: none;
 }
 
-/* Chat container specific styling */
+/* Chat container specific styling - dark theme */
 .liquid-glass.chat-container {
   min-height: auto;
   height: auto;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px) saturate(200%) brightness(110%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(110%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px) saturate(200%) brightness(70%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(70%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Thin bar variant of liquid glass - for command bar */
+/* Thin bar variant of liquid glass - for command bar - dark theme */
 .liquid-glass-bar {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(16px) saturate(180%) brightness(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(120%);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px) saturate(180%) brightness(80%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(80%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 1rem;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   height: 32px !important;
@@ -148,7 +132,7 @@ button, input, select, textarea, .interactive {
   max-height: 32px !important;
 }
 
-/* Shimmer effect for bar variant */
+/* Shimmer effect for bar variant - dark theme */
 .liquid-glass-bar::before {
   content: '';
   position: absolute;
@@ -159,7 +143,7 @@ button, input, select, textarea, .interactive {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05),
     transparent
   );
   animation: shimmer 3s ease-in-out infinite;

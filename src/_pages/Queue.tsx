@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useQuery } from "react-query"
+import { MessageCircle, Send } from "lucide-react"
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
 import {
   Toast,
@@ -42,7 +43,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
         return existing
       } catch (error) {
         console.error("Error loading screenshots:", error)
-        showToast("Error", "Failed to load existing screenshots", "error")
+        showToast("エラー", "既存のスクリーンショットの読み込みに失敗しました", "error")
         return []
       }
     },
@@ -75,7 +76,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
         refetch()
       } else {
         console.error("Failed to delete screenshot:", response.error)
-        showToast("Error", "Failed to delete the screenshot file", "error")
+        showToast("エラー", "スクリーンショットファイルの削除に失敗しました", "error")
       }
     } catch (error) {
       console.error("Error deleting screenshot:", error)
@@ -88,10 +89,12 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     setChatLoading(true)
     setChatInput("")
     try {
-      const response = await window.electronAPI.invoke("gemini-chat", chatInput)
+      // Add Japanese context if needed
+      const enhancedInput = chatInput;
+      const response = await window.electronAPI.invoke("gemini-chat", enhancedInput)
       setChatMessages((msgs) => [...msgs, { role: "gemini", text: response }])
     } catch (err) {
-      setChatMessages((msgs) => [...msgs, { role: "gemini", text: "Error: " + String(err) }])
+      setChatMessages((msgs) => [...msgs, { role: "gemini", text: "エラー: " + String(err) }])
     } finally {
       setChatLoading(false)
       chatInputRef.current?.focus()
@@ -124,8 +127,8 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
       window.electronAPI.onResetView(() => refetch()),
       window.electronAPI.onSolutionError((error: string) => {
         showToast(
-          "Processing Failed",
-          "There was an error processing your screenshots.",
+          "処理失敗",
+          "スクリーンショットの処理中にエラーが発生しました。",
           "error"
         )
         setView("queue")
@@ -133,8 +136,8 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
       }),
       window.electronAPI.onProcessingNoScreenshots(() => {
         showToast(
-          "No Screenshots",
-          "There are no screenshots to process.",
+          "スクリーンショットなし",
+          "処理するスクリーンショットがありません。",
           "neutral"
         )
       })
@@ -163,7 +166,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
           setChatMessages((msgs) => [...msgs, { role: "gemini", text: response.text }]);
         }
       } catch (err) {
-        setChatMessages((msgs) => [...msgs, { role: "gemini", text: "Error: " + String(err) }]);
+        setChatMessages((msgs) => [...msgs, { role: "gemini", text: "エラー: " + String(err) }]);
       } finally {
         setChatLoading(false);
       }
@@ -214,12 +217,13 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
           {/* Conditional Chat Interface */}
           {isChatOpen && (
             <div className="mt-4 w-full mx-auto liquid-glass chat-container p-4 flex flex-col">
-            <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg bg-white/10 backdrop-blur-md max-h-64 min-h-[120px] glass-content border border-white/20 shadow-lg">
+            <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg bg-black/20 backdrop-blur-md max-h-64 min-h-[120px] glass-content border border-white/20">
               {chatMessages.length === 0 ? (
-                <div className="text-sm text-gray-600 text-center mt-8">
-                  💬 Chat with Gemini 2.5 Flash
+                <div className="text-sm text-white/80 text-center mt-8">
+                  <MessageCircle className="w-5 h-5 mx-auto mb-2 text-white/60" />
+                  Gemini 2.5 Flashとチャット
                   <br />
-                  <span className="text-xs text-gray-500">Take a screenshot (Cmd+H) for automatic analysis</span>
+                  <span className="text-xs text-white/50">スクリーンショットを撮る (Cmd+H) で自動分析</span>
                 </div>
               ) : (
                 chatMessages.map((msg, idx) => (
@@ -228,10 +232,10 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
                     className={`w-full flex ${msg.role === "user" ? "justify-end" : "justify-start"} mb-3`}
                   >
                     <div
-                      className={`max-w-[80%] px-3 py-1.5 rounded-xl text-xs shadow-md backdrop-blur-sm border ${
+                      className={`max-w-[80%] px-3 py-1.5 rounded-xl text-xs backdrop-blur-sm border ${
                         msg.role === "user" 
-                          ? "bg-gray-700/80 text-gray-100 ml-12 border-gray-600/40" 
-                          : "bg-white/85 text-gray-700 mr-12 border-gray-200/50"
+                          ? "bg-gray-800/80 text-gray-100 ml-12 border-gray-600/40" 
+                          : "bg-black/40 text-white/90 mr-12 border-white/30"
                       }`}
                       style={{ wordBreak: "break-word", lineHeight: "1.4" }}
                     >
@@ -242,12 +246,12 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
               )}
               {chatLoading && (
                 <div className="flex justify-start mb-3">
-                  <div className="bg-white/85 text-gray-600 px-3 py-1.5 rounded-xl text-xs backdrop-blur-sm border border-gray-200/50 shadow-md mr-12">
+                  <div className="bg-black/40 text-white/80 px-3 py-1.5 rounded-xl text-xs backdrop-blur-sm border border-white/30 mr-12">
                     <span className="inline-flex items-center">
-                      <span className="animate-pulse text-gray-400">●</span>
-                      <span className="animate-pulse animation-delay-200 text-gray-400">●</span>
-                      <span className="animate-pulse animation-delay-400 text-gray-400">●</span>
-                      <span className="ml-2">Gemini is thinking...</span>
+                      <span className="animate-pulse text-white/40">●</span>
+                      <span className="animate-pulse animation-delay-200 text-white/40">●</span>
+                      <span className="animate-pulse animation-delay-400 text-white/40">●</span>
+                      <span className="ml-2">Geminiが考え中...</span>
                     </span>
                   </div>
                 </div>
@@ -262,18 +266,18 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
             >
               <input
                 ref={chatInputRef}
-                className="flex-1 rounded-lg px-3 py-2 bg-white/25 backdrop-blur-md text-gray-800 placeholder-gray-500 text-xs focus:outline-none focus:ring-1 focus:ring-gray-400/60 border border-white/40 shadow-lg transition-all duration-200"
-                placeholder="Type your message..."
+                className="flex-1 rounded-lg px-3 py-2 bg-black/30 backdrop-blur-md text-white placeholder-white/60 text-xs focus:outline-none focus:ring-1 focus:ring-white/40 border border-white/40 transition-all duration-200"
+                placeholder="メッセージを入力..."
                 value={chatInput}
                 onChange={e => setChatInput(e.target.value)}
                 disabled={chatLoading}
               />
               <button
                 type="submit"
-                className="p-2 rounded-lg bg-gray-600/80 hover:bg-gray-700/80 border border-gray-500/60 flex items-center justify-center transition-all duration-200 backdrop-blur-sm shadow-lg disabled:opacity-50"
+                className="p-2 rounded-lg bg-gray-800/80 hover:bg-gray-900/80 border border-gray-600/60 flex items-center justify-center transition-all duration-200 backdrop-blur-sm disabled:opacity-50"
                 disabled={chatLoading || !chatInput.trim()}
                 tabIndex={-1}
-                aria-label="Send"
+                aria-label="送信"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-7.5-15-7.5v6l10 1.5-10 1.5v6z" />

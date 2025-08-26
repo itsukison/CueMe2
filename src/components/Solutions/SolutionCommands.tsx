@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { IoLogOutOutline } from "react-icons/io5"
+import { LogOut, Command } from "lucide-react"
 
 interface SolutionCommandsProps {
   extraScreenshots: any[]
@@ -37,10 +37,10 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
         <div className="text-xs text-white/90 backdrop-blur-md bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
           {/* Show/Hide */}
           <div className="flex items-center gap-2 whitespace-nowrap">
-            <span className="text-[11px] leading-none">Show/Hide</span>
+            <span className="text-[11px] leading-none">表示/非表示</span>
             <div className="flex gap-1">
-              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                ⌘
+              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+                <Command className="w-3 h-3" />
               </button>
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 B
@@ -52,12 +52,12 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-[11px] leading-none truncate">
               {extraScreenshots.length === 0
-                ? "Screenshot your code"
-                : "Screenshot"}
+                ? "コードのスクリーンショット"
+                : "スクリーンショット"}
             </span>
             <div className="flex gap-1">
-              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                ⌘
+              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+                <Command className="w-3 h-3" />
               </button>
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 H
@@ -66,10 +66,10 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
           </div>
           {extraScreenshots.length > 0 && (
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <span className="text-[11px] leading-none">Debug</span>
+              <span className="text-[11px] leading-none">デバッグ</span>
               <div className="flex gap-1">
-                <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                  ⌘
+                <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+                  <Command className="w-3 h-3" />
                 </button>
                 <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                   ↵
@@ -80,10 +80,10 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
 
           {/* Start Over */}
           <div className="flex items-center gap-2 whitespace-nowrap">
-            <span className="text-[11px] leading-none">Start over</span>
+            <span className="text-[11px] leading-none">最初からやり直す</span>
             <div className="flex gap-1">
-              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                ⌘
+              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+                <Command className="w-3 h-3" />
               </button>
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 R
@@ -109,22 +109,22 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                 className="absolute top-full right-0 mt-2 w-80"
                 style={{ zIndex: 100 }}
               >
-                <div className="p-3 text-xs bg-black/80 backdrop-blur-md rounded-lg border border-white/10 text-white/90 shadow-lg">
+                <div className="p-3 text-xs bg-black/80 backdrop-blur-md rounded-lg border border-white/10 text-white/90">
                   {/* Tooltip content */}
                   <div className="space-y-4">
                     <h3 className="font-medium whitespace-nowrap">
-                      Keyboard Shortcuts
+                      キーボードショートカット
                     </h3>
                     <div className="space-y-3">
                       {/* Toggle Command */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="whitespace-nowrap">
-                            Toggle Window
+                            ウィンドウ切り替え
                           </span>
                           <div className="flex gap-1">
-                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                              <Command className="w-2 h-2" />
                             </span>
                             <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                               B
@@ -132,18 +132,18 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                           </div>
                         </div>
                         <p className="text-[10px] leading-relaxed text-white/70 whitespace-nowrap truncate">
-                          Show or hide this window.
+                          このウィンドウを表示または非表示にします。
                         </p>
                       </div>
                       {/* Screenshot Command */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="whitespace-nowrap">
-                            Take Screenshot
+                            スクリーンショットを撮る
                           </span>
                           <div className="flex gap-1">
-                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                              <Command className="w-2 h-2" />
                             </span>
                             <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                               H
@@ -151,18 +151,16 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                           </div>
                         </div>
                         <p className="text-[10px] leading-relaxed text-white/70 whitespace-nowrap truncate">
-                          Capture additional parts of the question or your
-                          solution for debugging help. Up to 5 extra screenshots
-                          are saved.
+                          質問や解決策の追加部分をキャプチャしてデバッグに役立てます。追加のスクリーンショットは5枚まで保存されます。
                         </p>
                       </div>
                       {/* Debug Command */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="whitespace-nowrap">Debug</span>
+                          <span className="whitespace-nowrap">デバッグ</span>
                           <div className="flex gap-1">
-                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                              <Command className="w-2 h-2" />
                             </span>
                             <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                               ↵
@@ -170,17 +168,16 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                           </div>
                         </div>
                         <p className="text-[10px] leading-relaxed text-white/70 whitespace-nowrap truncate">
-                          Generate new solutions based on all previous and newly
-                          added screenshots.
+                          これまでのスクリーンショットと新しく追加したスクリーンショットに基づいて新しい解決策を生成します。
                         </p>
                       </div>
                       {/* Start Over Command */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="whitespace-nowrap">Start Over</span>
+                          <span className="whitespace-nowrap">最初からやり直す</span>
                           <div className="flex gap-1">
-                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none flex items-center">
+                              <Command className="w-2 h-2" />
                             </span>
                             <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                               R
@@ -188,7 +185,7 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                           </div>
                         </div>
                         <p className="text-[10px] leading-relaxed text-white/70 whitespace-nowrap truncate">
-                          Start fresh with a new question.
+                          新しい質問から新たに始めます。
                         </p>
                       </div>
                     </div>
@@ -201,10 +198,10 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
           {/* Sign Out Button */}
           <button
             className="text-red-500/70 hover:text-red-500/90 transition-colors hover:cursor-pointer"
-            title="Sign Out"
+            title="サインアウト"
             onClick={() => window.electronAPI.quitApp()}
           >
-            <IoLogOutOutline className="w-4 h-4" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>

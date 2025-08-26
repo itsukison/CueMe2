@@ -35,7 +35,7 @@ export const ContentSection = ({
     {isLoading ? (
       <div className="mt-4 flex">
         <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-          Extracting problem statement...
+          問題文を抽出中...
         </p>
       </div>
     ) : (
@@ -62,7 +62,7 @@ const SolutionSection = ({
       <div className="space-y-1.5">
         <div className="mt-4 flex">
           <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-            Loading solutions...
+            解決策を読み込み中...
           </p>
         </div>
       </div>
@@ -99,24 +99,24 @@ export const ComplexitySection = ({
 }) => (
   <div className="space-y-2">
     <h2 className="text-[13px] font-medium text-white tracking-wide">
-      Complexity (Updated)
+      複雑さ (更新)
     </h2>
     {isLoading ? (
       <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-        Calculating complexity...
+        複雑さを計算中...
       </p>
     ) : (
       <div className="space-y-1">
         <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
           <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
           <div>
-            <strong>Time:</strong> {timeComplexity}
+            <strong>時間:</strong> {timeComplexity}
           </div>
         </div>
         <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
           <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
           <div>
-            <strong>Space:</strong> {spaceComplexity}
+            <strong>空間:</strong> {spaceComplexity}
           </div>
         </div>
       </div>
@@ -293,15 +293,15 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
         // Simulate receiving custom content shortly after start
         setTimeout(() => {
           setCustomContent(
-            "This is the dynamically generated content appearing after loading starts."
+            "これは、読み込み開始後に動的に生成されたコンテンツです。"
           )
         }, 1500) // Example delay
       }),
       //if there was an error processing the initial solution
       window.electronAPI.onSolutionError((error: string) => {
         showToast(
-          "Processing Failed",
-          "There was an error processing your extra screenshots.",
+          "処理失敗",
+          "追加スクリーンショットの処理中にエラーが発生しました。",
           "error"
         )
         // Reset solutions in the cache (even though this shouldn't ever happen) and complexities to previous states
@@ -360,16 +360,16 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
       //when there was an error in the initial debugging, we'll show a toast and stop the little generating pulsing thing.
       window.electronAPI.onDebugError(() => {
         showToast(
-          "Processing Failed",
-          "There was an error debugging your code.",
+          "処理失敗",
+          "コードのデバッグ中にエラーが発生しました。",
           "error"
         )
         setDebugProcessing(false)
       }),
       window.electronAPI.onProcessingNoScreenshots(() => {
         showToast(
-          "No Screenshots",
-          "There are no extra screenshots to process.",
+          "スクリーンショットなし",
+          "処理する追加スクリーンショットがありません。",
           "neutral"
         )
       })
@@ -486,13 +486,13 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
           />
 
           {/* Main Content - Modified width constraints */}
-          <div className="w-full text-sm text-black bg-black/60 rounded-md">
+          <div className="w-full text-sm text-white bg-black/60 rounded-md">
             <div className="rounded-lg overflow-hidden">
               <div className="px-4 py-3 space-y-4 max-w-full">
                 {/* Show Screenshot or Audio Result as main output if validation_type is manual */}
                 {problemStatementData?.validation_type === "manual" ? (
                   <ContentSection
-                    title={problemStatementData?.output_format?.subtype === "voice" ? "Audio Result" : "Screenshot Result"}
+                    title={problemStatementData?.output_format?.subtype === "voice" ? "音声結果" : "スクリーンショット結果"}
                     content={problemStatementData.problem_statement}
                     isLoading={false}
                   />
@@ -500,7 +500,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                   <>
                     {/* Problem Statement Section - Only for non-manual */}
                     <ContentSection
-                      title={problemStatementData?.output_format?.subtype === "voice" ? "Voice Input" : "Problem Statement"}
+                      title={problemStatementData?.output_format?.subtype === "voice" ? "音声入力" : "問題文"}
                       content={problemStatementData?.problem_statement}
                       isLoading={!problemStatementData}
                     />
@@ -509,8 +509,8 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                       <div className="mt-4 flex">
                         <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
                           {problemStatementData?.output_format?.subtype === "voice" 
-                            ? "Processing voice input..." 
-                            : "Generating solutions..."}
+                            ? "音声入力を処理中..." 
+                            : "解決策を生成中..."}
                         </p>
                       </div>
                     )}
@@ -518,7 +518,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                     {solutionData && (
                       <>
                         <ContentSection
-                          title="Analysis"
+                          title="分析"
                           content={
                             thoughtsData && (
                               <div className="space-y-3">
@@ -539,7 +539,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                           isLoading={!thoughtsData}
                         />
                         <SolutionSection
-                          title={problemStatementData?.output_format?.subtype === "voice" ? "Response" : "Solution"}
+                          title={problemStatementData?.output_format?.subtype === "voice" ? "応答" : "解決策"}
                           content={solutionData}
                           isLoading={!solutionData}
                         />
