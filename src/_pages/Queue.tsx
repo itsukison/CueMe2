@@ -324,7 +324,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
             <ToastTitle>{toastMessage.title}</ToastTitle>
             <ToastDescription>{toastMessage.description}</ToastDescription>
           </Toast>
-          <div className="w-fit">
+          <div className="w-fit overflow-visible">
             <QueueCommands
               screenshots={screenshots}
               onTooltipVisibilityChange={handleTooltipVisibilityChange}

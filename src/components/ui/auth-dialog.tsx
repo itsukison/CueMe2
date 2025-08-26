@@ -115,41 +115,41 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
     // User is authenticated - show user info and sign out option
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <div className="space-y-6 p-6">
+        <DialogContent className="sm:max-w-sm w-full mx-auto">
+          <div className="space-y-4 p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <User className="w-5 h-5 text-green-600" />
+              <div className="p-2 bg-green-100 rounded-full flex-shrink-0">
+                <User className="w-4 h-4 text-green-600" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Signed In</h3>
-                <p className="text-sm text-gray-600">{authState.user.email}</p>
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-gray-900">Signed In</h3>
+                <p className="text-xs text-gray-600 truncate">{authState.user.email}</p>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="p-2 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-xs text-red-600">{error}</p>
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <button
                 onClick={handleSignOut}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
+                className="w-full flex items-center justify-center gap-1 px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
               >
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3 h-3 animate-spin" />
                 ) : (
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3 h-3" />
                 )}
                 Sign Out
               </button>
 
               <button
                 onClick={() => onOpenChange(false)}
-                className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                className="w-full px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
               >
                 Close
               </button>
@@ -162,22 +162,22 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <div className="space-y-6 p-6">
+      <DialogContent className="sm:max-w-sm w-full mx-auto">
+        <div className="space-y-4 p-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <LogIn className="w-5 h-5 text-blue-600" />
+            <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+              <LogIn className="w-4 h-4 text-blue-600" />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-gray-900 truncate">
                 {mode === 'signin' && 'Sign In to CueMe'}
                 {mode === 'signup' && 'Create Account'}
                 {mode === 'reset' && 'Reset Password'}
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-600 truncate">
                 {mode === 'signin' && 'Access your QnA collections'}
-                {mode === 'signup' && 'Create an account to save QnA collections'}
-                {mode === 'reset' && 'Enter your email to reset password'}
+                {mode === 'signup' && 'Create account for QnA'}
+                {mode === 'reset' && 'Reset your password'}
               </p>
             </div>
           </div>
@@ -196,18 +196,18 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Mail className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter your email"
                   required
                 />
@@ -216,25 +216,25 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
 
             {mode !== 'reset' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-7 pr-8 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                   </button>
                 </div>
               </div>
@@ -242,16 +242,16 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
 
             {mode === 'signup' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Confirm your password"
                     required
                   />
@@ -262,12 +262,12 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
+              className="w-full flex items-center justify-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3 h-3 animate-spin" />
               ) : (
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-3 h-3" />
               )}
               {mode === 'signin' && 'Sign In'}
               {mode === 'signup' && 'Create Account'}
@@ -275,12 +275,12 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
             </button>
           </form>
 
-          <div className="space-y-2 text-center text-sm">
+          <div className="space-y-1 text-center text-xs">
             {mode === 'signin' && (
               <>
                 <button
                   onClick={() => setMode('reset')}
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  className="text-blue-600 hover:text-blue-800 underline block w-full"
                 >
                   Forgot your password?
                 </button>

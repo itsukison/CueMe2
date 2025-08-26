@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 import { LogOut, Mic, MicOff, MessageCircle, Command, ChevronDown, Database, Bot } from "lucide-react"
 import { Dialog, DialogContent, DialogClose } from "../ui/dialog"
 
@@ -44,6 +45,8 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
   const [collections, setCollections] = useState<QnACollection[]>([])
   const [collectionsLoading, setCollectionsLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
   
   // Remove all chat-related state, handlers, and the Dialog overlay from this file.
 
@@ -65,7 +68,8 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false)
       }
     }
@@ -79,12 +83,26 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
     }
   }, [isDropdownOpen])
 
+  // Update dropdown position when opened
+  useEffect(() => {
+    if (isDropdownOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4, // 4px gap
+        left: rect.left + window.scrollX,
+        width: Math.max(192, rect.width) // Min width 192px (w-48)
+      })
+    }
+  }, [isDropdownOpen])
+
   const loadCollections = async () => {
     if (!isAuthenticated) return
     
     try {
       setCollectionsLoading(true)
+      console.log('[QueueCommands] Loading collections for authenticated user...')
       const userCollections = await window.electronAPI.invoke('qna-get-collections')
+      console.log('[QueueCommands] Loaded collections:', userCollections)
       setCollections(userCollections)
     } catch (error) {
       console.error('Error loading collections:', error)
@@ -97,6 +115,12 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
   const handleResponseModeChange = (mode: ResponseMode) => {
     onResponseModeChange?.(mode)
     setIsDropdownOpen(false)
+  }
+
+  const toggleDropdown = () => {
+    console.log('[QueueCommands] Toggling dropdown. Current state:', isDropdownOpen)
+    console.log('[QueueCommands] Authentication status:', isAuthenticated)
+    setIsDropdownOpen(!isDropdownOpen)
   }
 
   const handleMouseEnter = () => {
@@ -146,15 +170,16 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
   // Remove handleChatSend function
 
   return (
-    <div className="w-fit">
-      <div className="text-xs text-white/90 liquid-glass-bar py-1 px-4 flex items-center justify-center gap-4 draggable-area">
+    <div className="w-fit overflow-visible">
+      <div className="text-xs text-white/90 liquid-glass-bar py-1 px-4 flex items-center justify-center gap-4 draggable-area overflow-visible">
         {/* Response Mode Dropdown */}
         <div className="flex items-center gap-2">
           <span className="text-[11px] leading-none">Mode</span>
           <div className="relative" ref={dropdownRef}>
             <button
+              ref={triggerRef}
               className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 min-w-[80px]"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              onClick={toggleDropdown}
               type="button"
             >
               {responseMode.type === 'plain' ? (
@@ -165,72 +190,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
               <ChevronDown className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
             
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-black/90 backdrop-blur-md rounded-lg border border-white/20 shadow-lg z-50">
-                <div className="p-1">
-                  {/* Plain Mode Option */}
-                  <button
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${
-                      responseMode.type === 'plain' 
-                        ? 'bg-white/20 text-white' 
-                        : 'text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
-                    onClick={() => handleResponseModeChange({ type: 'plain' })}
-                  >
-                    <Bot className="w-3 h-3" />
-                    <div className="text-left">
-                      <div className="font-medium">Plain Responses</div>
-                      <div className="text-[10px] text-white/50">Direct Gemini answers</div>
-                    </div>
-                  </button>
-                  
-                  {/* Separator */}
-                  {isAuthenticated && <div className="h-px bg-white/10 my-1" />}
-                  
-                  {/* QnA Collections */}
-                  {isAuthenticated ? (
-                    collectionsLoading ? (
-                      <div className="px-3 py-2 text-[11px] text-white/50">
-                        Loading collections...
-                      </div>
-                    ) : collections.length > 0 ? (
-                      collections.map((collection) => (
-                        <button
-                          key={collection.id}
-                          className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${
-                            responseMode.type === 'qna' && responseMode.collectionId === collection.id
-                              ? 'bg-white/20 text-white' 
-                              : 'text-white/70 hover:bg-white/10 hover:text-white'
-                          }`}
-                          onClick={() => handleResponseModeChange({ 
-                            type: 'qna', 
-                            collectionId: collection.id, 
-                            collectionName: collection.name 
-                          })}
-                        >
-                          <Database className="w-3 h-3" />
-                          <div className="text-left flex-1">
-                            <div className="font-medium truncate">{collection.name}</div>
-                            <div className="text-[10px] text-white/50">
-                              {collection.qna_count || 0} items
-                            </div>
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-[11px] text-white/50">
-                        No QnA collections found
-                      </div>
-                    )
-                  ) : (
-                    <div className="px-3 py-2 text-[11px] text-white/50">
-                      Sign in to use QnA collections
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
 
@@ -389,12 +349,88 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
       </div>
       {/* Audio Result Display */}
       {audioResult && (
-        <div className="mt-2 p-2 bg-white/10 rounded text-white text-xs max-w-md">
-          <span className="font-semibold">音声結果:</span> {audioResult}
+        <div className="mt-2 p-3 bg-black/80 backdrop-blur-md rounded-lg border border-white/20 text-white/90 text-xs max-w-md">
+          <span className="font-semibold text-white">音声結果:</span> {audioResult}
         </div>
       )}
       {/* Chat Dialog Overlay */}
       {/* Remove the Dialog component */}
+      
+      {/* Dropdown Portal - Rendered outside component tree to escape container constraints */}
+      {isDropdownOpen && createPortal(
+        <div 
+          ref={dropdownRef}
+          className="fixed bg-black/90 backdrop-blur-md rounded-lg border border-white/20 shadow-xl z-[9999] max-h-64 overflow-y-auto"
+          style={{
+            top: dropdownPosition.top,
+            left: dropdownPosition.left,
+            width: dropdownPosition.width,
+          }}
+        >
+          <div className="p-1">
+            {/* Plain Mode Option */}
+            <button
+              className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${
+                responseMode.type === 'plain' 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+              }`}
+              onClick={() => handleResponseModeChange({ type: 'plain' })}
+            >
+              <Bot className="w-3 h-3" />
+              <div className="text-left">
+                <div className="font-medium">Plain Responses</div>
+                <div className="text-[10px] text-white/50">Direct Gemini answers</div>
+              </div>
+            </button>
+            
+            {/* Separator */}
+            {isAuthenticated && <div className="h-px bg-white/10 my-1" />}
+            
+            {/* QnA Collections */}
+            {isAuthenticated ? (
+              collectionsLoading ? (
+                <div className="px-3 py-2 text-[11px] text-white/50">
+                  Loading collections...
+                </div>
+              ) : collections.length > 0 ? (
+                collections.map((collection) => (
+                  <button
+                    key={collection.id}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${
+                      responseMode.type === 'qna' && responseMode.collectionId === collection.id
+                        ? 'bg-white/20 text-white' 
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    }`}
+                    onClick={() => handleResponseModeChange({ 
+                      type: 'qna', 
+                      collectionId: collection.id, 
+                      collectionName: collection.name 
+                    })}
+                  >
+                    <Database className="w-3 h-3" />
+                    <div className="text-left flex-1">
+                      <div className="font-medium truncate">{collection.name}</div>
+                      <div className="text-[10px] text-white/50">
+                        {collection.qna_count || 0} items
+                      </div>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="px-3 py-2 text-[11px] text-white/50">
+                  No QnA collections found
+                </div>
+              )
+            ) : (
+              <div className="px-3 py-2 text-[11px] text-white/50">
+                Sign in to use QnA collections
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
