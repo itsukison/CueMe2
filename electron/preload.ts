@@ -35,6 +35,13 @@ interface ElectronAPI {
   analyzeImageFile: (path: string) => Promise<void>
   quitApp: () => Promise<void>
   invoke: (channel: string, ...args: any[]) => Promise<any>
+  // Auth methods
+  authSignIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  authSignUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  authSignOut: () => Promise<{ success: boolean; error?: string }>
+  authGetState: () => Promise<{ user: any | null; session: any | null; isLoading: boolean }>
+  authResetPassword: (email: string) => Promise<{ success: boolean; error?: string }>
+  onAuthStateChange: (callback: (state: { user: any | null; session: any | null; isLoading: boolean }) => void) => () => void
 }
 
 export const PROCESSING_EVENTS = {
@@ -171,5 +178,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
   analyzeAudioFile: (path: string) => ipcRenderer.invoke("analyze-audio-file", path),
   analyzeImageFile: (path: string) => ipcRenderer.invoke("analyze-image-file", path),
   quitApp: () => ipcRenderer.invoke("quit-app"),
-  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args)
+  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+  
+  // Auth methods
+  authSignIn: (email: string, password: string) => ipcRenderer.invoke("auth-sign-in", email, password),
+  authSignUp: (email: string, password: string) => ipcRenderer.invoke("auth-sign-up", email, password),
+  authSignOut: () => ipcRenderer.invoke("auth-sign-out"),
+  authGetState: () => ipcRenderer.invoke("auth-get-state"),
+  authResetPassword: (email: string) => ipcRenderer.invoke("auth-reset-password", email),
+  onAuthStateChange: (callback: (state: { user: any | null; session: any | null; isLoading: boolean }) => void) => {
+    const subscription = (_: any, state: { user: any | null; session: any | null; isLoading: boolean }) => callback(state)
+    ipcRenderer.on("auth-state-changed", subscription)
+    return () => {
+      ipcRenderer.removeListener("auth-state-changed", subscription)
+    }
+  }
 } as ElectronAPI)

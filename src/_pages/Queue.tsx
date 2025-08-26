@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useQuery } from "react-query"
-import { MessageCircle, Send } from "lucide-react"
+import { MessageCircle, Send, User, LogIn } from "lucide-react"
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
 import {
   Toast,
@@ -10,6 +10,19 @@ import {
   ToastMessage
 } from "../components/ui/toast"
 import QueueCommands from "../components/Queue/QueueCommands"
+import { AuthDialog } from "../components/ui/auth-dialog.tsx"
+
+interface ResponseMode {
+  type: 'plain' | 'qna'
+  collectionId?: string
+  collectionName?: string
+}
+
+interface AuthState {
+  user: any | null
+  session: any | null
+  isLoading: boolean
+}
 
 interface QueueProps {
   setView: React.Dispatch<React.SetStateAction<"queue" | "solutions" | "debug">>
@@ -32,6 +45,17 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
   const [chatLoading, setChatLoading] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const chatInputRef = useRef<HTMLInputElement>(null)
+
+  // Auth state
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    session: null,
+    isLoading: true
+  })
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false)
+  
+  // Response mode state
+  const [responseMode, setResponseMode] = useState<ResponseMode>({ type: 'plain' })
 
   const barRef = useRef<HTMLDivElement>(null)
 
@@ -64,6 +88,37 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     setToastOpen(true)
   }
 
+  // Initialize auth state
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const initialState = await window.electronAPI.invoke('auth-get-state')
+        setAuthState(initialState)
+      } catch (error) {
+        console.error('Error getting initial auth state:', error)
+        setAuthState({ user: null, session: null, isLoading: false })
+      }
+    }
+    
+    initAuth()
+    
+    // Poll for auth state changes as a workaround
+    const pollAuthState = async () => {
+      try {
+        const currentState = await window.electronAPI.invoke('auth-get-state')
+        setAuthState(currentState)
+      } catch (error) {
+        console.error('Error polling auth state:', error)
+      }
+    }
+    
+    const intervalId = setInterval(pollAuthState, 2000) // Poll every 2 seconds
+    
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [])
+
   const handleDeleteScreenshot = async (index: number) => {
     const screenshotToDelete = screenshots[index]
 
@@ -87,11 +142,21 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     if (!chatInput.trim()) return
     setChatMessages((msgs) => [...msgs, { role: "user", text: chatInput }])
     setChatLoading(true)
+    const currentInput = chatInput
     setChatInput("")
+    
     try {
-      // Add Japanese context if needed
-      const enhancedInput = chatInput;
-      const response = await window.electronAPI.invoke("gemini-chat", enhancedInput)
+      let response: string
+      
+      if (responseMode.type === 'qna' && responseMode.collectionId && authState.user) {
+        // Use RAG-enabled chat
+        const result = await window.electronAPI.invoke("gemini-chat-rag", currentInput, responseMode.collectionId)
+        response = result.response
+      } else {
+        // Use plain Gemini chat
+        response = await window.electronAPI.invoke("gemini-chat", currentInput)
+      }
+      
       setChatMessages((msgs) => [...msgs, { role: "gemini", text: response }])
     } catch (err) {
       setChatMessages((msgs) => [...msgs, { role: "gemini", text: "エラー: " + String(err) }])
@@ -185,6 +250,58 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     setIsChatOpen(!isChatOpen)
   }
 
+  // Auth handlers
+  const handleSignIn = async (email: string, password: string) => {
+    try {
+      return await window.electronAPI.invoke('auth-sign-in', email, password)
+    } catch (error) {
+      console.error('Sign in error:', error)
+      return { success: false, error: 'Sign in failed' }
+    }
+  }
+
+  const handleSignUp = async (email: string, password: string) => {
+    try {
+      return await window.electronAPI.invoke('auth-sign-up', email, password)
+    } catch (error) {
+      console.error('Sign up error:', error)
+      return { success: false, error: 'Sign up failed' }
+    }
+  }
+
+  const handleSignOut = async () => {
+    try {
+      const result = await window.electronAPI.invoke('auth-sign-out')
+      if (result.success) {
+        // Reset response mode to plain when signing out
+        setResponseMode({ type: 'plain' })
+        showToast('サインアウト', '正常にサインアウトしました', 'neutral')
+      }
+      return result
+    } catch (error) {
+      console.error('Sign out error:', error)
+      return { success: false, error: 'Sign out failed' }
+    }
+  }
+
+  const handleResetPassword = async (email: string) => {
+    try {
+      return await window.electronAPI.invoke('auth-reset-password', email)
+    } catch (error) {
+      console.error('Reset password error:', error)
+      return { success: false, error: 'Password reset failed' }
+    }
+  }
+
+  const handleResponseModeChange = (mode: ResponseMode) => {
+    setResponseMode(mode)
+    if (mode.type === 'qna' && mode.collectionName) {
+      showToast('モード変更', `${mode.collectionName} コレクションを使用します`, 'neutral')
+    } else {
+      showToast('モード変更', 'プレーンモードを使用します', 'neutral')
+    }
+  }
+
 
   return (
     <div
@@ -212,7 +329,29 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
               screenshots={screenshots}
               onTooltipVisibilityChange={handleTooltipVisibilityChange}
               onChatToggle={handleChatToggle}
+              responseMode={responseMode}
+              onResponseModeChange={handleResponseModeChange}
+              isAuthenticated={!!authState.user}
             />
+            
+            {/* Auth Button */}
+            <button
+              onClick={() => setIsAuthDialogOpen(true)}
+              className="mt-2 w-full bg-white/10 hover:bg-white/20 transition-colors rounded-md px-3 py-2 text-[11px] leading-none text-white/70 flex items-center justify-center gap-2"
+              type="button"
+            >
+              {authState.user ? (
+                <>
+                  <User className="w-3 h-3" />
+                  <span className="truncate max-w-[100px]">{authState.user.email}</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-3 h-3" />
+                  <span>Sign In</span>
+                </>
+              )}
+            </button>
           </div>
           {/* Conditional Chat Interface */}
           {isChatOpen && (
@@ -288,6 +427,17 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
           )}
         </div>
       </div>
+      
+      {/* Auth Dialog */}
+      <AuthDialog
+        isOpen={isAuthDialogOpen}
+        onOpenChange={setIsAuthDialogOpen}
+        authState={authState}
+        onSignIn={handleSignIn}
+        onSignUp={handleSignUp}
+        onSignOut={handleSignOut}
+        onResetPassword={handleResetPassword}
+      />
     </div>
   )
 }

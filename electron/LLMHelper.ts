@@ -1,8 +1,16 @@
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai"
 import fs from "fs"
+import { QnAService, SearchResult } from "./QnAService"
+
+export interface RAGContext {
+  hasContext: boolean
+  results: SearchResult[]
+  collectionName?: string
+}
 
 export class LLMHelper {
   private model: GenerativeModel
+  private qnaService: QnAService | null = null
   private readonly systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation (not just coding). For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Prioritize brevity while maintaining clarity. Format responses in a structured way with clear sections when appropriate.`
 
   constructor(apiKey: string) {
@@ -180,6 +188,88 @@ export class LLMHelper {
     } catch (error) {
       console.error("[LLMHelper] Error in chatWithGemini:", error);
       throw error;
+    }
+  }
+
+  public setQnAService(qnaService: QnAService) {
+    this.qnaService = qnaService
+  }
+
+  private async searchRAGContext(
+    message: string, 
+    collectionId?: string
+  ): Promise<RAGContext> {
+    if (!this.qnaService || !collectionId) {
+      return { hasContext: false, results: [] }
+    }
+
+    try {
+      const searchResults = await this.qnaService.findRelevantAnswers(
+        message,
+        collectionId,
+        0.7 // similarity threshold
+      )
+
+      return {
+        hasContext: searchResults.hasRelevantAnswers,
+        results: searchResults.answers
+      }
+    } catch (error) {
+      console.error('[LLMHelper] Error searching RAG context:', error)
+      return { hasContext: false, results: [] }
+    }
+  }
+
+  private formatRAGPrompt(message: string, ragContext: RAGContext): string {
+    if (!ragContext.hasContext || ragContext.results.length === 0) {
+      return message
+    }
+
+    const contextInfo = ragContext.results
+      .map((result, index) => {
+        return `Reference ${index + 1} (relevance: ${result.similarity.toFixed(2)}):\nQ: ${result.question}\nA: ${result.answer}`
+      })
+      .join('\n\n---\n\n')
+
+    return `Based on the following relevant information from the knowledge base:\n\n${contextInfo}\n\n---\n\nUser Question: ${message}\n\nPlease provide a comprehensive answer using the above context when relevant, but also feel free to add your own insights and suggestions.`
+  }
+
+  public async chatWithRAG(
+    message: string,
+    collectionId?: string
+  ): Promise<{ response: string; ragContext: RAGContext }> {
+    try {
+      // Search for relevant context if collection is specified
+      const ragContext = await this.searchRAGContext(message, collectionId)
+      
+      // Format the prompt with RAG context if available
+      const enhancedMessage = this.formatRAGPrompt(message, ragContext)
+      
+      // Add instruction for Japanese responses if detected
+      const japaneseInstruction = "Keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Use Japanese when appropriate."
+      const finalMessage = enhancedMessage + (message.includes("日本語") || message.includes("Japanese") ? `\n${japaneseInstruction}` : "")
+      
+      const result = await this.model.generateContent(finalMessage)
+      const response = await result.response
+      let text = response.text()
+      
+      // If responding in Japanese, ensure brevity
+      if (text.includes("日本") || text.includes("です") || text.includes("ます")) {
+        text = text + "\n\n(簡潔で明確な日本語の回答を心がけています)"
+      }
+      
+      // Add context indicator if RAG was used
+      if (ragContext.hasContext) {
+        text = `📚 *Found ${ragContext.results.length} relevant reference(s)*\n\n${text}`
+      }
+      
+      return {
+        response: text,
+        ragContext
+      }
+    } catch (error) {
+      console.error("[LLMHelper] Error in chatWithRAG:", error)
+      throw error
     }
   }
 } 

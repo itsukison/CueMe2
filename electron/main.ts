@@ -4,6 +4,8 @@ import { WindowHelper } from "./WindowHelper"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { ShortcutsHelper } from "./shortcuts"
 import { ProcessingHelper } from "./ProcessingHelper"
+import { AuthService } from "./AuthService"
+import { QnAService } from "./QnAService"
 
 export class AppState {
   private static instance: AppState | null = null
@@ -12,6 +14,8 @@ export class AppState {
   private screenshotHelper: ScreenshotHelper
   public shortcutsHelper: ShortcutsHelper
   public processingHelper: ProcessingHelper
+  public authService: AuthService
+  public qnaService: QnAService
   private tray: Tray | null = null
 
   // View management
@@ -54,6 +58,23 @@ export class AppState {
 
     // Initialize ProcessingHelper
     this.processingHelper = new ProcessingHelper(this)
+
+    // Initialize AuthService
+    this.authService = new AuthService()
+
+    // Listen for auth state changes and broadcast to renderer
+    this.authService.onAuthStateChange((authState) => {
+      const mainWindow = this.getMainWindow()
+      if (mainWindow) {
+        mainWindow.webContents.send('auth-state-changed', authState)
+      }
+    })
+
+    // Initialize QnAService with AuthService's Supabase client
+    this.qnaService = new QnAService(this.authService.getSupabaseClient())
+
+    // Set QnAService in ProcessingHelper's LLMHelper
+    this.processingHelper.getLLMHelper().setQnAService(this.qnaService)
 
     // Initialize ShortcutsHelper
     this.shortcutsHelper = new ShortcutsHelper(this)

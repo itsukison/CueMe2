@@ -26,6 +26,13 @@ export interface ElectronAPI {
   analyzeAudioFile: (path: string) => Promise<{ text: string; timestamp: number }>
   quitApp: () => Promise<void>
   invoke: (channel: string, ...args: any[]) => Promise<any>
+  // Auth methods
+  authSignIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  authSignUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  authSignOut: () => Promise<{ success: boolean; error?: string }>
+  authGetState: () => Promise<{ user: any | null; session: any | null; isLoading: boolean }>
+  authResetPassword: (email: string) => Promise<{ success: boolean; error?: string }>
+  onAuthStateChange: (callback: (state: { user: any | null; session: any | null; isLoading: boolean }) => void) => () => void
 }
 
 declare global {
