@@ -18,7 +18,7 @@ This guide explains how to build, package, and distribute the CueMe Electron app
 ./scripts/prepare-release.sh v1.0.0
 
 # 2. Monitor GitHub Actions
-# Visit: https://github.com/ibttf/interview-coder-frontend/actions
+# Visit: https://github.com/itsukison/CueMe2/actions
 ```
 
 ### Manual Build Process
@@ -160,7 +160,7 @@ The landing page automatically:
 
 ```javascript
 // Fetches latest release info
-fetch('https://api.github.com/repos/ibttf/interview-coder-frontend/releases/latest')
+fetch('https://api.github.com/repos/itsukison/CueMe2/releases/latest')
 ```
 
 ## 🔐 Security & Code Signing
@@ -193,7 +193,7 @@ export CSC_KEY_PASSWORD="certificate_password"
 
 ```bash
 # Get download stats
-gh api repos/ibttf/interview-coder-frontend/releases/latest
+gh api repos/itsukison/CueMe2/releases/latest
 ```
 
 ## 🐛 Troubleshooting

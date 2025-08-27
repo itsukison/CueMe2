@@ -103,8 +103,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "ibttf",
-        "repo": "interview-coder-frontend",
+        "owner": "itsukison",
+        "repo": "CueMe2",
         "releaseType": "release"
       }
     ]
