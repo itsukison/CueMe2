@@ -275,7 +275,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
       if (result.success) {
         // Reset response mode to plain when signing out
         setResponseMode({ type: 'plain' })
-        showToast('サインアウト', '正常にサインアウトしました', 'neutral')
+        // Removed toast notification
       }
       return result
     } catch (error) {
@@ -321,33 +321,38 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
             <ToastDescription>{toastMessage.description}</ToastDescription>
           </Toast>
           <div className="w-fit overflow-visible">
-            <QueueCommands
-              screenshots={screenshots}
-              onTooltipVisibilityChange={handleTooltipVisibilityChange}
-              onChatToggle={handleChatToggle}
-              responseMode={responseMode}
-              onResponseModeChange={handleResponseModeChange}
-              isAuthenticated={!!authState.user}
-            />
-            
-            {/* Auth Button */}
-            <button
-              onClick={() => setIsAuthDialogOpen(true)}
-              className="mt-2 w-full bg-white/10 hover:bg-white/20 transition-colors rounded-md px-3 py-2 text-[11px] leading-none text-white/70 flex items-center justify-center gap-2"
-              type="button"
-            >
+            <div className="flex items-center gap-2">
+              <QueueCommands
+                screenshots={screenshots}
+                onTooltipVisibilityChange={handleTooltipVisibilityChange}
+                onChatToggle={handleChatToggle}
+                responseMode={responseMode}
+                onResponseModeChange={handleResponseModeChange}
+                isAuthenticated={!!authState.user}
+              />
+              
+              {/* Auth Button/Icon - Always show on the right side of the bar */}
               {authState.user ? (
-                <>
-                  <User className="w-3 h-3" />
-                  <span className="truncate max-w-[100px]">{authState.user.email}</span>
-                </>
+                <button
+                  onClick={() => setIsAuthDialogOpen(true)}
+                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 ml-2"
+                  style={{ backgroundColor: '#f0f9f0' }}
+                  type="button"
+                  title={`ログイン済み: ${authState.user.email}`}
+                >
+                  <User className="w-3 h-3" style={{ color: '#013220' }} />
+                </button>
               ) : (
-                <>
-                  <LogIn className="w-3 h-3" />
-                  <span>Sign In</span>
-                </>
+                <button
+                  onClick={() => setIsAuthDialogOpen(true)}
+                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 ml-2 bg-white/10 hover:bg-white/20"
+                  type="button"
+                  title="ログイン"
+                >
+                  <LogIn className="w-3 h-3 text-white/70" />
+                </button>
               )}
-            </button>
+            </div>
           </div>
           {/* Conditional Chat Interface */}
           {isChatOpen && (
@@ -424,16 +429,20 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
         </div>
       </div>
       
-      {/* Auth Dialog */}
-      <AuthDialog
-        isOpen={isAuthDialogOpen}
-        onOpenChange={setIsAuthDialogOpen}
-        authState={authState}
-        onSignIn={handleSignIn}
-        onSignUp={handleSignUp}
-        onSignOut={handleSignOut}
-        onResetPassword={handleResetPassword}
-      />
+      {/* Inline Auth Form - appears below the bar for both login and logout */}
+      {isAuthDialogOpen && (
+        <div className="mt-2 w-full">
+          <AuthDialog
+            isOpen={isAuthDialogOpen}
+            onOpenChange={setIsAuthDialogOpen}
+            authState={authState}
+            onSignIn={handleSignIn}
+            onSignUp={handleSignUp}
+            onSignOut={handleSignOut}
+            onResetPassword={handleResetPassword}
+          />
+        </div>
+      )}
     </div>
   )
 }

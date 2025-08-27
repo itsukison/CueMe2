@@ -57,39 +57,39 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
     try {
       if (mode === 'signup') {
         if (password !== confirmPassword) {
-          setError('Passwords do not match')
+          setError('パスワードが一致しません')
           return
         }
         if (password.length < 6) {
-          setError('Password must be at least 6 characters')
+          setError('パスワードは6文字以上である必要があります')
           return
         }
         
         const result = await onSignUp(email, password)
         if (result.success) {
-          setSuccess('Account created successfully! Please check your email for verification.')
+          setSuccess('アカウントが作成されました！確認メールをご確認ください。')
           setMode('signin')
         } else {
-          setError(result.error || 'Failed to create account')
+          setError(result.error || 'アカウント作成に失敗しました')
         }
       } else if (mode === 'signin') {
         const result = await onSignIn(email, password)
         if (result.success) {
           onOpenChange(false)
         } else {
-          setError(result.error || 'Failed to sign in')
+          setError(result.error || 'ログインに失敗しました')
         }
       } else if (mode === 'reset') {
         const result = await onResetPassword(email)
         if (result.success) {
-          setSuccess('Password reset email sent! Check your inbox.')
+          setSuccess('パスワードリセットメールを送信しました！')
           setMode('signin')
         } else {
-          setError(result.error || 'Failed to send reset email')
+          setError(result.error || 'リセットメールの送信に失敗しました')
         }
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      setError('予期しないエラーが発生しました')
     } finally {
       setLoading(false)
     }
@@ -102,223 +102,105 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
       if (result.success) {
         onOpenChange(false)
       } else {
-        setError(result.error || 'Failed to sign out')
+        setError(result.error || 'ログアウトに失敗しました')
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      setError('予期しないエラーが発生しました')
     } finally {
       setLoading(false)
     }
   }
 
   if (authState.user) {
-    // User is authenticated - show user info and sign out option
+    // User is authenticated - show inline logout form with same styling
     return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-sm w-full mx-auto">
-          <div className="space-y-4 p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full flex-shrink-0">
-                <User className="w-4 h-4 text-green-600" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold text-gray-900">Signed In</h3>
-                <p className="text-xs text-gray-600 truncate">{authState.user.email}</p>
-              </div>
-            </div>
-
-            {error && (
-              <div className="p-2 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-xs text-red-600">{error}</p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <button
-                onClick={handleSignOut}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-1 px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
-              >
-                {loading ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <LogOut className="w-3 h-3" />
-                )}
-                Sign Out
-              </button>
-
-              <button
-                onClick={() => onOpenChange(false)}
-                className="w-full px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-              >
-                Close
-              </button>
-            </div>
+      <div className="w-full bg-black/90 backdrop-blur-md rounded-lg border border-white/20 p-3">
+        {error && (
+          <div className="mb-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg">
+            <p className="text-xs text-red-200 text-center">{error}</p>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+
+        <div className="flex gap-2 items-center">
+          <div className="flex-1 flex items-center gap-2 text-white/70 text-xs">
+            <User className="w-3 h-3" />
+            <span className="truncate">{authState.user.email}</span>
+          </div>
+          
+          <button
+            onClick={handleSignOut}
+            disabled={loading}
+            className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium border border-white/20 flex items-center gap-1"
+          >
+            {loading ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <>
+                <LogOut className="w-3 h-3" />
+                ログアウト
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     )
   }
 
+  // User is not authenticated - show inline form below the bar (no dialog wrapper)
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm w-full mx-auto">
-        <div className="space-y-4 p-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
-              <LogIn className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-base font-semibold text-gray-900 truncate">
-                {mode === 'signin' && 'Sign In to CueMe'}
-                {mode === 'signup' && 'Create Account'}
-                {mode === 'reset' && 'Reset Password'}
-              </h3>
-              <p className="text-xs text-gray-600 truncate">
-                {mode === 'signin' && 'Access your QnA collections'}
-                {mode === 'signup' && 'Create account for QnA'}
-                {mode === 'reset' && 'Reset your password'}
-              </p>
-            </div>
-          </div>
-
-          {(error || success) && (
-            <div className={`p-3 border rounded-md ${
-              error 
-                ? 'bg-red-50 border-red-200' 
-                : 'bg-green-50 border-green-200'
-            }`}>
-              <p className={`text-sm ${
-                error ? 'text-red-600' : 'text-green-600'
-              }`}>
-                {error || success}
-              </p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-            </div>
-
-            {mode !== 'reset' && (
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-7 pr-8 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter your password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Confirm your password"
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
-            >
-              {loading ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <LogIn className="w-3 h-3" />
-              )}
-              {mode === 'signin' && 'Sign In'}
-              {mode === 'signup' && 'Create Account'}
-              {mode === 'reset' && 'Send Reset Email'}
-            </button>
-          </form>
-
-          <div className="space-y-1 text-center text-xs">
-            {mode === 'signin' && (
-              <>
-                <button
-                  onClick={() => setMode('reset')}
-                  className="text-blue-600 hover:text-blue-800 underline block w-full"
-                >
-                  Forgot your password?
-                </button>
-                <div>
-                  <span className="text-gray-600">Don't have an account? </span>
-                  <button
-                    onClick={() => setMode('signup')}
-                    className="text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Sign up
-                  </button>
-                </div>
-              </>
-            )}
-
-            {mode === 'signup' && (
-              <div>
-                <span className="text-gray-600">Already have an account? </span>
-                <button
-                  onClick={() => setMode('signin')}
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Sign in
-                </button>
-              </div>
-            )}
-
-            {mode === 'reset' && (
-              <button
-                onClick={() => setMode('signin')}
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                Back to sign in
-              </button>
-            )}
-          </div>
+    <div className="w-full bg-black/90 backdrop-blur-md rounded-lg border border-white/20 p-3">
+      {error && (
+        <div className="mb-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg">
+          <p className="text-xs text-red-200 text-center">{error}</p>
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Mail className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white/40" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-7 pr-2 py-2 text-xs bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
+              placeholder="メールアドレス"
+              required
+            />
+          </div>
+          
+          <div className="relative flex-1">
+            <Lock className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white/40" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full pl-7 pr-8 py-2 text-xs bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
+              placeholder="パスワード"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60"
+            >
+              {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            </button>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium border border-white/20"
+          >
+            {loading ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              'ログイン'
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }
