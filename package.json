@@ -10,11 +10,19 @@
     "electron:dev": "tsc -p electron/tsconfig.json && electron .",
     "app:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env electron .\"",
     "app:build": "npm run build && electron-builder",
+    "app:build:all": "npm run build && electron-builder --mac --win --linux",
+    "app:build:mac": "npm run build && electron-builder --mac",
+    "app:build:win": "npm run build && electron-builder --win",
+    "app:build:linux": "npm run build && electron-builder --linux",
+    "release": "npm run build && electron-builder --publish=always",
+    "release:draft": "npm run build && electron-builder --publish=onTagOrDraft",
     "watch": "tsc -p electron/tsconfig.json --watch"
   },
   "build": {
-    "appId": "com.electron.interview-coder",
-    "productName": "Interview Coder",
+    "appId": "com.cueme.interview-assistant",
+    "productName": "CueMe",
+    "description": "AI-powered interview assistant for coding interviews",
+    "copyright": "Copyright © 2024 CueMe",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -23,33 +31,67 @@
     "directories": {
       "output": "release"
     },
+    "compression": "maximum",
     "mac": {
-      "category": "public.app-category.utilities",
+      "category": "public.app-category.productivity",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
       ],
-      "icon": "assets/icons/mac/icon.icns"
+      "icon": "assets/icons/mac/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist"
     },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
       ],
-      "icon": "assets/icons/win/icon.ico"
+      "icon": "assets/icons/win/icon.ico",
+      "publisherName": "CueMe",
+      "verifyUpdateCodeSignature": false
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
       ],
-      "icon": "assets/icons/png/icon-256x256.png"
+      "icon": "assets/icons/png/icon-256x256.png",
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CueMe"
     },
     "publish": [
       {
         "provider": "github",
         "owner": "ibttf",
-        "repo": "interview-coder-frontend"
+        "repo": "interview-coder-frontend",
+        "releaseType": "release"
       }
     ]
   },
