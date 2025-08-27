@@ -49,7 +49,6 @@
           ]
         }
       ],
-      "icon": "assets/icons/mac/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "assets/entitlements.mac.plist",
@@ -71,7 +70,6 @@
           ]
         }
       ],
-      "icon": "assets/icons/win/icon.ico",
       "publisherName": "CueMe",
       "verifyUpdateCodeSignature": false
     },
@@ -90,7 +88,6 @@
           ]
         }
       ],
-      "icon": "assets/icons/png/icon-256x256.png",
       "category": "Development"
     },
     "nsis": {

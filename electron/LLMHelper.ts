@@ -11,7 +11,28 @@ export interface RAGContext {
 export class LLMHelper {
   private model: GenerativeModel
   private qnaService: QnAService | null = null
-  private readonly systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation (not just coding). For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Prioritize brevity while maintaining clarity. Format responses in a structured way with clear sections when appropriate.`
+  private readonly systemPrompt = `あなたは面接支援AIアシスタントです。ユーザーの質問に対して、面接で直接使える形で回答してください。
+
+## 回答の基本方針：
+- 必ず日本語で回答する
+- 面接官に対して自然に話せる形で回答を構成する
+- 簡潔で明確、かつ具体的な内容にする
+- 専門用語は適切に説明を加える
+- 回答は即座に使える完成形で提供する
+
+## 回答形式：
+1. 核心となる回答を最初に述べる
+2. 必要に応じて具体例や補足説明を加える
+3. 関連する技術や概念があれば簡潔に触れる
+4. 「〜について説明します」などの前置きは不要
+
+## 避けるべき表現：
+- 「以下が回答になります」
+- 「参考情報によると」
+- 「検索結果から」
+- 「情報源によると」
+
+ユーザーが提供した資料や過去の質問回答集がある場合は、その内容を自然に組み込んで回答してください。`
 
   constructor(apiKey: string) {
     const genAI = new GoogleGenerativeAI(apiKey)
@@ -40,12 +61,16 @@ export class LLMHelper {
     try {
       const imageParts = await Promise.all(imagePaths.map(path => this.fileToGenerativePart(path)))
       
-      const prompt = `${this.systemPrompt}\n\nYou are a wingman. Please analyze these images and extract the following information in JSON format:\n{
-  "problem_statement": "A clear statement of the problem or situation depicted in the images.",
-  "context": "Relevant background or context from the images.",
-  "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-  "reasoning": "Explanation of why these suggestions are appropriate."
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks. When responding in Japanese, keep responses concise and structured for Japanese interview style.`
+      const prompt = `あなたは面接支援AIです。これらの画像を分析し、以下のJSON形式で情報を抽出してください：
+
+{
+  "problem_statement": "画像に描かれている問題や状況の明確な説明（日本語）",
+  "context": "画像から読み取れる関連する背景や文脈（日本語）",
+  "suggested_responses": ["面接で使える回答例1", "面接で使える回答例2", "面接で使える回答例3"],
+  "reasoning": "これらの回答が適切である理由の説明（日本語）"
+}
+
+重要：JSONオブジェクトのみを返し、マークダウン形式やコードブロックは使用しないでください。すべての内容は日本語で、面接で直接使える形式にしてください。`
 
       const result = await this.model.generateContent([prompt, ...imageParts])
       const response = await result.response
@@ -58,15 +83,23 @@ export class LLMHelper {
   }
 
   public async generateSolution(problemInfo: any) {
-    const prompt = `${this.systemPrompt}\n\nGiven this problem or situation:\n${JSON.stringify(problemInfo, null, 2)}\n\nPlease provide your response in the following JSON format:\n{
+    const prompt = `あなたは面接支援AIです。以下の問題や状況に対して、面接で使える回答を提供してください：
+
+問題情報：
+${JSON.stringify(problemInfo, null, 2)}
+
+以下のJSON形式で回答してください：
+{
   "solution": {
-    "code": "The code or main answer here.",
-    "problem_statement": "Restate the problem or situation.",
-    "context": "Relevant background/context.",
-    "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-    "reasoning": "Explanation of why these suggestions are appropriate."
+    "code": "メインの回答やコード（面接で直接使える形）",
+    "problem_statement": "問題や状況の再確認（日本語）",
+    "context": "関連する背景や文脈（日本語）",
+    "suggested_responses": ["面接で使える回答例1", "面接で使える回答例2", "面接で使える回答例3"],
+    "reasoning": "これらの回答が適切である理由（日本語）"
   }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`
+}
+
+重要：JSONオブジェクトのみを返し、マークダウン形式やコードブロックは使用しないでください。すべての内容は日本語で、面接で直接使える簡潔で明確な形式にしてください。`
 
     console.log("[LLMHelper] Calling Gemini LLM for solution...");
     try {
@@ -87,15 +120,24 @@ export class LLMHelper {
     try {
       const imageParts = await Promise.all(debugImagePaths.map(path => this.fileToGenerativePart(path)))
       
-      const prompt = `${this.systemPrompt}\n\nYou are a wingman. Given:\n1. The original problem or situation: ${JSON.stringify(problemInfo, null, 2)}\n2. The current response or approach: ${currentCode}\n3. The debug information in the provided images\n\nPlease analyze the debug information and provide feedback in this JSON format:\n{
+      const prompt = `あなたは面接支援AIです。以下の情報を分析してデバッグ支援を行ってください：
+
+1. 元の問題や状況：${JSON.stringify(problemInfo, null, 2)}
+2. 現在の回答やアプローチ：${currentCode}
+3. デバッグ情報：提供された画像を参照
+
+画像のデバッグ情報を分析し、以下のJSON形式でフィードバックを提供してください：
+{
   "solution": {
-    "code": "The code or main answer here.",
-    "problem_statement": "Restate the problem or situation.",
-    "context": "Relevant background/context.",
-    "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-    "reasoning": "Explanation of why these suggestions are appropriate."
+    "code": "改善された回答やコード（面接で直接使える形）",
+    "problem_statement": "問題や状況の再確認（日本語）",
+    "context": "関連する背景や文脈（日本語）",
+    "suggested_responses": ["改善された面接回答例1", "改善された面接回答例2", "改善された面接回答例3"],
+    "reasoning": "改善理由と適切性の説明（日本語）"
   }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks. When responding in Japanese, keep responses concise and structured for Japanese interview style.`
+}
+
+重要：JSONオブジェクトのみを返し、マークダウン形式やコードブロックは使用しないでください。すべての内容は日本語で、面接で直接使える簡潔で明確な形式にしてください。`
 
       const result = await this.model.generateContent([prompt, ...imageParts])
       const response = await result.response
@@ -109,7 +151,7 @@ export class LLMHelper {
     }
   }
 
-  public async analyzeAudioFile(audioPath: string) {
+  public async analyzeAudioFile(audioPath: string, collectionId?: string) {
     try {
       const audioData = await fs.promises.readFile(audioPath);
       const audioPart = {
@@ -118,18 +160,45 @@ export class LLMHelper {
           mimeType: "audio/mp3"
         }
       };
-      const prompt = `${this.systemPrompt}\n\nDescribe this audio clip in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the audio. Do not return a structured JSON object, just answer naturally as you would to a user. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`;
-      const result = await this.model.generateContent([prompt, audioPart]);
-      const response = await result.response;
-      const text = response.text();
-      return { text, timestamp: Date.now() };
+      
+      // First, extract the text content from audio
+      const transcriptionPrompt = `この音声ファイルの内容を正確に文字起こししてください。技術的な質問や面接に関連する内容があれば、それを明確に抽出してください。`;
+      
+      const transcriptionResult = await this.model.generateContent([transcriptionPrompt, audioPart]);
+      const transcriptionResponse = await transcriptionResult.response;
+      const transcribedText = transcriptionResponse.text();
+      
+      // If we have a collection ID, use RAG to enhance the response
+      if (collectionId && this.qnaService) {
+        const ragContext = await this.searchRAGContext(transcribedText, collectionId);
+        const enhancedPrompt = this.formatRAGPrompt(transcribedText, ragContext);
+        
+        const result = await this.model.generateContent(enhancedPrompt);
+        const response = await result.response;
+        let text = response.text();
+        text = this.cleanResponseText(text);
+        return { text, timestamp: Date.now(), ragContext };
+      } else {
+        // Use basic audio analysis without RAG
+        const prompt = `${this.systemPrompt}
+
+音声内容: ${transcribedText}
+
+上記の音声内容を分析し、面接で使える形で日本語で回答してください。音声の内容を簡潔に説明し、必要に応じて関連する技術的な補足や面接での回答例を提供してください。`;
+        
+        const result = await this.model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+        text = this.cleanResponseText(text);
+        return { text, timestamp: Date.now() };
+      }
     } catch (error) {
       console.error("Error analyzing audio file:", error);
       throw error;
     }
   }
 
-  public async analyzeAudioFromBase64(data: string, mimeType: string) {
+  public async analyzeAudioFromBase64(data: string, mimeType: string, collectionId?: string) {
     try {
       const audioPart = {
         inlineData: {
@@ -137,11 +206,38 @@ export class LLMHelper {
           mimeType
         }
       };
-      const prompt = `${this.systemPrompt}\n\nDescribe this audio clip in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the audio. Do not return a structured JSON object, just answer naturally as you would to a user and be concise. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`;
-      const result = await this.model.generateContent([prompt, audioPart]);
-      const response = await result.response;
-      const text = response.text();
-      return { text, timestamp: Date.now() };
+      
+      // First, extract the text content from audio
+      const transcriptionPrompt = `この音声ファイルの内容を正確に文字起こししてください。技術的な質問や面接に関連する内容があれば、それを明確に抽出してください。`;
+      
+      const transcriptionResult = await this.model.generateContent([transcriptionPrompt, audioPart]);
+      const transcriptionResponse = await transcriptionResult.response;
+      const transcribedText = transcriptionResponse.text();
+      
+      // If we have a collection ID, use RAG to enhance the response
+      if (collectionId && this.qnaService) {
+        const ragContext = await this.searchRAGContext(transcribedText, collectionId);
+        const enhancedPrompt = this.formatRAGPrompt(transcribedText, ragContext);
+        
+        const result = await this.model.generateContent(enhancedPrompt);
+        const response = await result.response;
+        let text = response.text();
+        text = this.cleanResponseText(text);
+        return { text, timestamp: Date.now(), ragContext };
+      } else {
+        // Use basic audio analysis without RAG
+        const prompt = `${this.systemPrompt}
+
+音声内容: ${transcribedText}
+
+上記の音声内容を分析し、面接で使える形で日本語で回答してください。音声の内容を簡潔に説明し、必要に応じて関連する技術的な補足や面接での回答例を提供してください。`;
+        
+        const result = await this.model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+        text = this.cleanResponseText(text);
+        return { text, timestamp: Date.now() };
+      }
     } catch (error) {
       console.error("Error analyzing audio from base64:", error);
       throw error;
@@ -157,10 +253,14 @@ export class LLMHelper {
           mimeType: "image/png"
         }
       };
-      const prompt = `${this.systemPrompt}\n\nDescribe the content of this image in a short, concise answer. In addition to your main answer, suggest several possible actions or responses the user could take next based on the image. Do not return a structured JSON object, just answer naturally as you would to a user. Be concise and brief. When responding in Japanese, keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure.`;
+      const prompt = `${this.systemPrompt}
+
+この画像の内容を分析し、面接で使える形で日本語で回答してください。画像に含まれる技術的な内容や質問があれば、それに対する適切な回答を提供してください。簡潔で実用的な内容にしてください。`;
+      
       const result = await this.model.generateContent([prompt, imagePart]);
       const response = await result.response;
-      const text = response.text();
+      let text = response.text();
+      text = this.cleanResponseText(text);
       return { text, timestamp: Date.now() };
     } catch (error) {
       console.error("Error analyzing image file:", error);
@@ -170,25 +270,18 @@ export class LLMHelper {
 
   public async chatWithGemini(message: string): Promise<string> {
     try {
-      // Always add instruction for Japanese responses with improved structure
-      const japaneseInstruction = `
-必ず日本語で回答してください。回答は以下の形式に従ってください：
-1. 「以下が回答になります」などの前置きなしに、直接回答を始める
-2. 簡潔で明確な回答を提供する
-3. 必要に応じて（　）内にユーザーが考えるべき部分を示す
-4. 情報源について言及せず、自然に情報を回答に組み込む
-5. 箇条書きや番号付きリストを使用して読みやすくする
-6. 専門用語には簡単な説明を加える
-`;
-      const enhancedMessage = message + "\n" + japaneseInstruction;
+      const enhancedPrompt = `${this.systemPrompt}
+
+ユーザーの質問: ${message}
+
+上記の質問に対して、面接で直接使える形で日本語で回答してください。回答は完結で実用的にし、面接官に対して自然に話せる内容にしてください。`;
       
-      const result = await this.model.generateContent(enhancedMessage);
+      const result = await this.model.generateContent(enhancedPrompt);
       const response = await result.response;
       let text = response.text();
       
-      // Remove any English text or mentions of using RAG/sources
-      text = text.replace(/I found relevant information|I'm using information from|Based on the information provided|According to the sources/gi, "");
-      text = text.replace(/Let me search for relevant information|Let me check the relevant information/gi, "");
+      // Clean up any unwanted phrases
+      text = this.cleanResponseText(text);
       
       return text;
     } catch (error) {
@@ -210,15 +303,23 @@ export class LLMHelper {
     }
 
     try {
+      // Use a lower threshold to get more potentially relevant results
       const searchResults = await this.qnaService.findRelevantAnswers(
         message,
         collectionId,
-        0.7 // similarity threshold
+        0.6 // Lower similarity threshold for better recall
       )
+
+      // Log the search results for debugging
+      console.log(`[LLMHelper] RAG search for "${message}" found ${searchResults.answers.length} results`)
+      if (searchResults.answers.length > 0) {
+        console.log(`[LLMHelper] Best match similarity: ${searchResults.answers[0].similarity.toFixed(3)}`)
+      }
 
       return {
         hasContext: searchResults.hasRelevantAnswers,
-        results: searchResults.answers
+        results: searchResults.answers,
+        collectionName: collectionId
       }
     } catch (error) {
       console.error('[LLMHelper] Error searching RAG context:', error)
@@ -233,11 +334,19 @@ export class LLMHelper {
 
     const contextInfo = ragContext.results
       .map((result, index) => {
-        return `参考情報 ${index + 1}:\n質問: ${result.question}\n回答: ${result.answer}`
+        return `【関連知識 ${index + 1}】\nQ: ${result.question}\nA: ${result.answer}\n類似度: ${(result.similarity * 100).toFixed(1)}%`
       })
-      .join('\n\n---\n\n')
+      .join('\n\n')
 
-    return `以下の情報を自然に組み込んで回答してください。情報源について言及せず、直接回答に統合してください：\n\n${contextInfo}\n\n---\n\nユーザーの質問: ${message}\n\n上記の情報を使って、自然な日本語で回答してください。必要に応じて（　）内にユーザーが考えるべき部分を示してください。`
+    return `${this.systemPrompt}
+
+## 利用可能な関連情報：
+${contextInfo}
+
+## ユーザーの質問：
+${message}
+
+上記の関連情報を活用して、面接で直接使える形で回答してください。情報源については言及せず、自然に内容を統合して回答してください。回答は完結で実用的にし、面接官に対して自然に話せる内容にしてください。`
   }
 
   public async chatWithRAG(
@@ -249,30 +358,14 @@ export class LLMHelper {
       const ragContext = await this.searchRAGContext(message, collectionId)
       
       // Format the prompt with RAG context if available
-      const enhancedMessage = this.formatRAGPrompt(message, ragContext)
+      const enhancedPrompt = this.formatRAGPrompt(message, ragContext)
       
-      // Always add instruction for Japanese responses with improved structure
-      const japaneseInstruction = `
-必ず日本語で回答してください。回答は以下の形式に従ってください：
-1. 「以下が回答になります」などの前置きなしに、直接回答を始める
-2. 簡潔で明確な回答を提供する
-3. 必要に応じて（　）内にユーザーが考えるべき部分を示す
-4. 情報源について言及せず、自然に情報を回答に組み込む
-5. 箇条書きや番号付きリストを使用して読みやすくする
-6. 専門用語には簡単な説明を加える
-7. 「関連情報が見つかりました」などの文言は使わず、直接回答に情報を組み込む
-`;
-      const finalMessage = enhancedMessage + "\n" + japaneseInstruction;
-      
-      const result = await this.model.generateContent(finalMessage)
+      const result = await this.model.generateContent(enhancedPrompt)
       const response = await result.response
       let text = response.text()
       
-      // Remove any mentions of using RAG/sources
-      text = text.replace(/I found relevant information|I'm using information from|Based on the information provided|According to the sources/gi, "");
-      text = text.replace(/Let me search for relevant information|Let me check the relevant information/gi, "");
-      text = text.replace(/📚 \*Found \d+ relevant reference\(s\)\*\n\n/g, "");
-      text = text.replace(/関連情報が見つかりました|参考情報によると|情報源によると|検索結果によると/g, "");
+      // Clean up any unwanted phrases
+      text = this.cleanResponseText(text)
       
       return {
         response: text,
@@ -282,5 +375,28 @@ export class LLMHelper {
       console.error("[LLMHelper] Error in chatWithRAG:", error)
       throw error
     }
+  }
+
+  private cleanResponseText(text: string): string {
+    // Remove English phrases about information sources
+    text = text.replace(/I found relevant information|I'm using information from|Based on the information provided|According to the sources/gi, "");
+    text = text.replace(/Let me search for relevant information|Let me check the relevant information/gi, "");
+    
+    // Remove Japanese phrases about information sources
+    text = text.replace(/📚 \*Found \d+ relevant reference\(s\)\*\n\n/g, "");
+    text = text.replace(/関連情報が見つかりました|参考情報によると|情報源によると|検索結果によると/g, "");
+    text = text.replace(/以下が回答になります[。：]/g, "");
+    text = text.replace(/回答いたします[。：]/g, "");
+    text = text.replace(/説明いたします[。：]/g, "");
+    text = text.replace(/お答えします[。：]/g, "");
+    
+    // Remove redundant introductory phrases
+    text = text.replace(/^(それでは、|では、|まず、)/g, "");
+    
+    // Clean up extra whitespace
+    text = text.replace(/\n\n\n+/g, "\n\n");
+    text = text.trim();
+    
+    return text;
   }
 }

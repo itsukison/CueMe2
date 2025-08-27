@@ -142,14 +142,14 @@ export class ProcessingHelper {
     this.appState.setHasDebugged(false)
   }
 
-  public async processAudioBase64(data: string, mimeType: string) {
-    // Directly use LLMHelper to analyze inline base64 audio
-    return this.llmHelper.analyzeAudioFromBase64(data, mimeType);
+  public async processAudioBase64(data: string, mimeType: string, collectionId?: string) {
+    // Directly use LLMHelper to analyze inline base64 audio with optional RAG
+    return this.llmHelper.analyzeAudioFromBase64(data, mimeType, collectionId);
   }
 
   // Add audio file processing method
-  public async processAudioFile(filePath: string) {
-    return this.llmHelper.analyzeAudioFile(filePath);
+  public async processAudioFile(filePath: string, collectionId?: string) {
+    return this.llmHelper.analyzeAudioFile(filePath, collectionId);
   }
 
   public getLLMHelper() {

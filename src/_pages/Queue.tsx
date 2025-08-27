@@ -320,7 +320,9 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
             <ToastTitle>{toastMessage.title}</ToastTitle>
             <ToastDescription>{toastMessage.description}</ToastDescription>
           </Toast>
-          <div className="w-fit overflow-visible">
+          
+          {/* Main Bar with Fixed Auth Button */}
+          <div className="w-fit overflow-visible relative">
             <div className="flex items-center gap-2">
               <QueueCommands
                 screenshots={screenshots}
@@ -330,33 +332,51 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
                 onResponseModeChange={handleResponseModeChange}
                 isAuthenticated={!!authState.user}
               />
-              
-              {/* Auth Button/Icon - Always show on the right side of the bar */}
+            </div>
+            
+            {/* Auth Button/Icon - Fixed position relative to the main bar */}
+            <div className="absolute top-0 right-0 transform translate-x-full pl-2">
               {authState.user ? (
                 <button
                   onClick={() => setIsAuthDialogOpen(true)}
-                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 ml-2"
-                  style={{ backgroundColor: '#f0f9f0' }}
+                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black hover:bg-black/80"
                   type="button"
                   title={`ログイン済み: ${authState.user.email}`}
                 >
-                  <User className="w-3 h-3" style={{ color: '#013220' }} />
+                  <User className="w-3 h-3 text-green-400" />
                 </button>
               ) : (
                 <button
                   onClick={() => setIsAuthDialogOpen(true)}
-                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 ml-2 bg-white/10 hover:bg-white/20"
+                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black hover:bg-black/80"
                   type="button"
                   title="ログイン"
                 >
-                  <LogIn className="w-3 h-3 text-white/70" />
+                  <User className="w-3 h-3 text-white/70" />
                 </button>
               )}
             </div>
           </div>
           {/* Conditional Chat Interface */}
           {isChatOpen && (
-            <div className="mt-4 w-full mx-auto liquid-glass chat-container p-4 flex flex-col">
+            <div className="mt-4 w-full mx-auto liquid-glass chat-container p-4 flex flex-col relative">
+              {/* Close Button */}
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all z-10"
+                type="button"
+                title="閉じる"
+              >
+                <svg 
+                  className="w-3 h-3 text-white" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
             <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg bg-black/20 backdrop-blur-md max-h-64 min-h-[120px] glass-content border border-white/20">
               {chatMessages.length === 0 ? (
                 <div className="text-sm text-white/80 text-center mt-8">

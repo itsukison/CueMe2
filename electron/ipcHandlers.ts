@@ -71,9 +71,9 @@ export function initializeIpcHandlers(appState: AppState): void {
   })
 
   // IPC handler for analyzing audio from base64 data
-  ipcMain.handle("analyze-audio-base64", async (event, data: string, mimeType: string) => {
+  ipcMain.handle("analyze-audio-base64", async (event, data: string, mimeType: string, collectionId?: string) => {
     try {
-      const result = await appState.processingHelper.processAudioBase64(data, mimeType)
+      const result = await appState.processingHelper.processAudioBase64(data, mimeType, collectionId)
       return result
     } catch (error: any) {
       console.error("Error in analyze-audio-base64 handler:", error)
@@ -82,9 +82,9 @@ export function initializeIpcHandlers(appState: AppState): void {
   })
 
   // IPC handler for analyzing audio from file path
-  ipcMain.handle("analyze-audio-file", async (event, path: string) => {
+  ipcMain.handle("analyze-audio-file", async (event, path: string, collectionId?: string) => {
     try {
-      const result = await appState.processingHelper.processAudioFile(path)
+      const result = await appState.processingHelper.processAudioFile(path, collectionId)
       return result
     } catch (error: any) {
       console.error("Error in analyze-audio-file handler:", error)

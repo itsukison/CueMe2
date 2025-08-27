@@ -145,7 +145,9 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           reader.onloadend = async () => {
             const base64Data = (reader.result as string).split(',')[1]
             try {
-              const result = await window.electronAPI.analyzeAudioFromBase64(base64Data, blob.type)
+              // Pass collection ID if in QnA mode
+              const collectionId = responseMode.type === 'qna' ? responseMode.collectionId : undefined
+              const result = await window.electronAPI.analyzeAudioFromBase64(base64Data, blob.type, collectionId)
               setAudioResult(result.text)
             } catch (err) {
               setAudioResult('Audio analysis failed.')
@@ -272,8 +274,27 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
       </div>
       {/* Audio Result Display */}
       {audioResult && (
-        <div className="mt-2 p-3 bg-black/80 backdrop-blur-md rounded-lg border border-white/20 text-white/90 text-xs max-w-md">
-          <span className="font-semibold text-white">音声結果:</span> {audioResult}
+        <div className="mt-2 p-3 bg-black/80 backdrop-blur-md rounded-lg border border-white/20 text-white/90 text-xs max-w-md relative">
+          {/* Close Button */}
+          <button
+            onClick={() => setAudioResult(null)}
+            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all"
+            type="button"
+            title="閉じる"
+          >
+            <svg 
+              className="w-2.5 h-2.5 text-white" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="pr-6">
+            <span className="font-semibold text-white">音声結果:</span> {audioResult}
+          </div>
         </div>
       )}
       {/* Chat Dialog Overlay */}

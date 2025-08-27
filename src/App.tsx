@@ -40,8 +40,8 @@ declare global {
       onDebugError: (callback: (error: string) => void) => () => void
 
       // Audio Processing
-      analyzeAudioFromBase64: (data: string, mimeType: string) => Promise<{ text: string; timestamp: number }>
-      analyzeAudioFile: (path: string) => Promise<{ text: string; timestamp: number }>
+      analyzeAudioFromBase64: (data: string, mimeType: string, collectionId?: string) => Promise<{ text: string; timestamp: number }>
+      analyzeAudioFile: (path: string, collectionId?: string) => Promise<{ text: string; timestamp: number }>
 
       moveWindowLeft: () => Promise<void>
       moveWindowRight: () => Promise<void>
