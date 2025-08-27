@@ -170,19 +170,25 @@ export class LLMHelper {
 
   public async chatWithGemini(message: string): Promise<string> {
     try {
-      // Add instruction for Japanese responses if detected
-      const japaneseInstruction = "Keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Use Japanese when appropriate.";
-      const enhancedMessage = message + (message.includes("日本語") || message.includes("Japanese") ? `\n${japaneseInstruction}` : "");
+      // Always add instruction for Japanese responses with improved structure
+      const japaneseInstruction = `
+必ず日本語で回答してください。回答は以下の形式に従ってください：
+1. 「以下が回答になります」などの前置きなしに、直接回答を始める
+2. 簡潔で明確な回答を提供する
+3. 必要に応じて（　）内にユーザーが考えるべき部分を示す
+4. 情報源について言及せず、自然に情報を回答に組み込む
+5. 箇条書きや番号付きリストを使用して読みやすくする
+6. 専門用語には簡単な説明を加える
+`;
+      const enhancedMessage = message + "\n" + japaneseInstruction;
       
       const result = await this.model.generateContent(enhancedMessage);
       const response = await result.response;
       let text = response.text();
       
-      // If responding in Japanese, ensure brevity
-      if (text.includes("日本") || text.includes("です") || text.includes("ます")) {
-        // Add a gentle reminder about concise responses for Japanese
-        text = text + "\n\n(簡潔で明確な日本語の回答を心がけています)";
-      }
+      // Remove any English text or mentions of using RAG/sources
+      text = text.replace(/I found relevant information|I'm using information from|Based on the information provided|According to the sources/gi, "");
+      text = text.replace(/Let me search for relevant information|Let me check the relevant information/gi, "");
       
       return text;
     } catch (error) {
@@ -227,11 +233,11 @@ export class LLMHelper {
 
     const contextInfo = ragContext.results
       .map((result, index) => {
-        return `Reference ${index + 1} (relevance: ${result.similarity.toFixed(2)}):\nQ: ${result.question}\nA: ${result.answer}`
+        return `参考情報 ${index + 1}:\n質問: ${result.question}\n回答: ${result.answer}`
       })
       .join('\n\n---\n\n')
 
-    return `Based on the following relevant information from the knowledge base:\n\n${contextInfo}\n\n---\n\nUser Question: ${message}\n\nPlease provide a comprehensive answer using the above context when relevant, but also feel free to add your own insights and suggestions.`
+    return `以下の情報を自然に組み込んで回答してください。情報源について言及せず、直接回答に統合してください：\n\n${contextInfo}\n\n---\n\nユーザーの質問: ${message}\n\n上記の情報を使って、自然な日本語で回答してください。必要に応じて（　）内にユーザーが考えるべき部分を示してください。`
   }
 
   public async chatWithRAG(
@@ -245,23 +251,28 @@ export class LLMHelper {
       // Format the prompt with RAG context if available
       const enhancedMessage = this.formatRAGPrompt(message, ragContext)
       
-      // Add instruction for Japanese responses if detected
-      const japaneseInstruction = "Keep responses concise and structured for Japanese interview style - short, clear answers with easy to understand structure. Use Japanese when appropriate."
-      const finalMessage = enhancedMessage + (message.includes("日本語") || message.includes("Japanese") ? `\n${japaneseInstruction}` : "")
+      // Always add instruction for Japanese responses with improved structure
+      const japaneseInstruction = `
+必ず日本語で回答してください。回答は以下の形式に従ってください：
+1. 「以下が回答になります」などの前置きなしに、直接回答を始める
+2. 簡潔で明確な回答を提供する
+3. 必要に応じて（　）内にユーザーが考えるべき部分を示す
+4. 情報源について言及せず、自然に情報を回答に組み込む
+5. 箇条書きや番号付きリストを使用して読みやすくする
+6. 専門用語には簡単な説明を加える
+7. 「関連情報が見つかりました」などの文言は使わず、直接回答に情報を組み込む
+`;
+      const finalMessage = enhancedMessage + "\n" + japaneseInstruction;
       
       const result = await this.model.generateContent(finalMessage)
       const response = await result.response
       let text = response.text()
       
-      // If responding in Japanese, ensure brevity
-      if (text.includes("日本") || text.includes("です") || text.includes("ます")) {
-        text = text + "\n\n(簡潔で明確な日本語の回答を心がけています)"
-      }
-      
-      // Add context indicator if RAG was used
-      if (ragContext.hasContext) {
-        text = `📚 *Found ${ragContext.results.length} relevant reference(s)*\n\n${text}`
-      }
+      // Remove any mentions of using RAG/sources
+      text = text.replace(/I found relevant information|I'm using information from|Based on the information provided|According to the sources/gi, "");
+      text = text.replace(/Let me search for relevant information|Let me check the relevant information/gi, "");
+      text = text.replace(/📚 \*Found \d+ relevant reference\(s\)\*\n\n/g, "");
+      text = text.replace(/関連情報が見つかりました|参考情報によると|情報源によると|検索結果によると/g, "");
       
       return {
         response: text,
@@ -272,4 +283,4 @@ export class LLMHelper {
       throw error
     }
   }
-} 
+}

@@ -295,11 +295,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
 
   const handleResponseModeChange = (mode: ResponseMode) => {
     setResponseMode(mode)
-    if (mode.type === 'qna' && mode.collectionName) {
-      showToast('モード変更', `${mode.collectionName} コレクションを使用します`, 'neutral')
-    } else {
-      showToast('モード変更', 'プレーンモードを使用します', 'neutral')
-    }
+    // Removed toast notifications when switching modes
   }
 
 
