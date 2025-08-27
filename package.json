@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf dist dist-electron",
     "dev": "vite",
-    "build": "npm run clean && tsc && vite build",
+    "build": "npm run clean && tsc -p electron/tsconfig.json && vite build",
     "preview": "vite preview",
     "electron:dev": "tsc -p electron/tsconfig.json && electron .",
     "app:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env electron .\"",

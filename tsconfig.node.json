@@ -10,7 +10,7 @@
     "lib": ["ES2020"],
     "types": ["node"],
     "strict": false,
-    "noEmit": true
+    "outDir": "dist-electron"
   },
   "include": [
     "electron/**/*.ts",
@@ -22,7 +22,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "dist-electron",
     "src"
   ]
 }
