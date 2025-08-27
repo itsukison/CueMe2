@@ -21,7 +21,6 @@
   "build": {
     "appId": "com.cueme.interview-assistant",
     "productName": "CueMe",
-    "description": "AI-powered interview assistant for coding interviews",
     "copyright": "Copyright © 2024 CueMe",
     "files": [
       "dist/**/*",
@@ -113,7 +112,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "AI-powered interview assistant for coding interviews",
   "devDependencies": {
     "@types/color": "^4.2.0",
     "@types/diff": "^6.0.0",
