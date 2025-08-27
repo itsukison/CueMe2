@@ -7,17 +7,22 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "target": "ES2020",
-    "lib": ["ES2020"]
+    "lib": ["ES2020"],
+    "types": ["node"],
+    "strict": false,
+    "noEmit": true
   },
   "include": [
-    "electron/**/*",
-    "scripts/**/*",
-    "*.config.js",
-    "*.config.ts"
+    "electron/**/*.ts",
+    "scripts/**/*.js",
+    "scripts/**/*.ts",
+    "postcss.config.js",
+    "tailwind.config.js"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "dist-electron"
+    "dist-electron",
+    "src"
   ]
 }

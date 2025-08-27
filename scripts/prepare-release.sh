@@ -42,7 +42,15 @@ fi
 
 # Update package.json version
 echo "📝 Updating package.json version..."
-npm version ${VERSION#v} --no-git-tag-version
+CLEAN_VERSION=${VERSION#v}
+CURRENT_VERSION=$(node -p "require('./package.json').version")
+
+if [ "$CURRENT_VERSION" = "$CLEAN_VERSION" ]; then
+    echo "ℹ️  Version is already $CLEAN_VERSION, skipping version update"
+else
+    npm version $CLEAN_VERSION --no-git-tag-version
+    echo "✅ Updated version from $CURRENT_VERSION to $CLEAN_VERSION"
+fi
 
 # Build the application
 echo "🔨 Building application..."
@@ -55,16 +63,37 @@ if [ ! -d "dist" ] || [ ! -d "dist-electron" ]; then
     exit 1
 fi
 
-# Commit version bump
-echo "💾 Committing version bump..."
-git add package.json package-lock.json
-git commit -m "chore: bump version to $VERSION"
+# Commit version bump (if there are changes)
+if [ "$CURRENT_VERSION" != "$CLEAN_VERSION" ]; then
+    echo "💾 Committing version bump..."
+    git add package.json package-lock.json
+    git commit -m "chore: bump version to $VERSION"
+else
+    echo "ℹ️  No version changes to commit"
+fi
 
 # Create and push tag
 echo "🏷️  Creating and pushing tag..."
-git tag $VERSION
-git push origin main
-git push origin $VERSION
+
+# Check if tag already exists
+if git rev-parse "$VERSION" >/dev/null 2>&1; then
+    echo "⚠️  Tag $VERSION already exists"
+    read -p "Delete existing tag and recreate? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        git tag -d $VERSION
+        git push origin :refs/tags/$VERSION
+        git tag $VERSION
+        git push origin main
+        git push origin $VERSION
+    else
+        echo "ℹ️  Skipping tag creation"
+    fi
+else
+    git tag $VERSION
+    git push origin main
+    git push origin $VERSION
+fi
 
 echo "✅ Release preparation complete!"
 echo ""
