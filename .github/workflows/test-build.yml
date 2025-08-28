@@ -9,7 +9,7 @@ permissions:
 jobs:
   test-build:
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -20,7 +20,7 @@ jobs:
             platform: mac
           - os: windows-latest
             platform: win
-    
+
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "Cleaning previous installations..."
           rm -rf node_modules
-          
+
           if [ -f "pnpm-lock.yaml" ]; then
             echo "Using pnpm..."
             pnpm install --frozen-lockfile
@@ -70,13 +70,13 @@ jobs:
           echo "Starting test build for platform: ${{ matrix.platform }}"
           echo "Node version: $(node --version)"
           echo "NPM version: $(npm --version)"
-          
+
           echo "Running npm run build..."
           npm run build
-          
+
           echo "Running electron-builder (dry run)..."
           npx electron-builder --${{ matrix.platform }} --verbose --dir
-          
+
           echo "Test build completed for ${{ matrix.platform }}"
 
       - name: List build outputs

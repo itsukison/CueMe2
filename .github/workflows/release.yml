@@ -87,13 +87,13 @@ jobs:
           echo "Node version: $(node --version)"
           echo "npm version: $(npm --version)"
           echo "Current directory: $(pwd)"
-          
+
           echo "Running npm run build..."
           npm run build
-          
+
           echo "Running electron-builder..."
           npm run release
-          
+
           echo "Build completed for ${{ matrix.platform }}"
 
       - name: Debug - List build artifacts
