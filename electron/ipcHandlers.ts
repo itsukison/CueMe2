@@ -1,6 +1,6 @@
 // ipcHandlers.ts
 
-import { ipcMain, app } from "electron"
+import { ipcMain, app, shell } from "electron"
 import { AppState } from "./main"
 
 export function initializeIpcHandlers(appState: AppState): void {
@@ -105,6 +105,23 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   ipcMain.handle("gemini-chat", async (event, message: string) => {
     try {
+      // Check if user is authenticated
+      const user = appState.authService.getCurrentUser();
+      const accessToken = appState.authService.getAccessToken();
+      if (user && accessToken) {
+        // Check usage limits and increment if allowed
+        const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+        if (!usageCheck.allowed) {
+          throw new Error(usageCheck.error || 'Usage limit exceeded');
+        }
+
+        // Increment usage before processing
+        const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+        if (!usageResult.success) {
+          throw new Error(usageResult.error || 'Usage tracking failed');
+        }
+      }
+
       const result = await appState.processingHelper.getLLMHelper().chatWithGemini(message);
       return result;
     } catch (error: any) {
@@ -116,6 +133,23 @@ export function initializeIpcHandlers(appState: AppState): void {
   // RAG-enabled chat handler
   ipcMain.handle("gemini-chat-rag", async (event, message: string, collectionId?: string) => {
     try {
+      // Check if user is authenticated
+      const user = appState.authService.getCurrentUser();
+      const accessToken = appState.authService.getAccessToken();
+      if (user && accessToken) {
+        // Check usage limits and increment if allowed
+        const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+        if (!usageCheck.allowed) {
+          throw new Error(usageCheck.error || 'Usage limit exceeded');
+        }
+
+        // Increment usage before processing
+        const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+        if (!usageResult.success) {
+          throw new Error(usageResult.error || 'Usage tracking failed');
+        }
+      }
+
       const result = await appState.processingHelper.getLLMHelper().chatWithRAG(message, collectionId);
       return result;
     } catch (error: any) {
@@ -217,6 +251,16 @@ export function initializeIpcHandlers(appState: AppState): void {
     } catch (error: any) {
       console.error("Error in qna-find-relevant handler:", error);
       throw error;
+    }
+  });
+
+  ipcMain.handle("open-external-url", async (event, url: string) => {
+    try {
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error opening external URL:", error);
+      return { success: false, error: error.message };
     }
   });
 

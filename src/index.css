@@ -43,6 +43,23 @@
   }
 }
 
+/* Ensure dialogs can be positioned anywhere on screen */
+[data-radix-popper-content-wrapper],
+[data-radix-portal] {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure dialog content is not constrained by parent containers */
+.draggable-dialog {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
 /* Fallback for browsers without backdrop-filter support */
 @supports not (backdrop-filter: blur()) {
   .liquid-glass {

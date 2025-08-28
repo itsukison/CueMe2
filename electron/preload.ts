@@ -177,6 +177,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   analyzeAudioFromBase64: (data: string, mimeType: string, collectionId?: string) => ipcRenderer.invoke("analyze-audio-base64", data, mimeType, collectionId),
   analyzeAudioFile: (path: string, collectionId?: string) => ipcRenderer.invoke("analyze-audio-file", path, collectionId),
   analyzeImageFile: (path: string) => ipcRenderer.invoke("analyze-image-file", path),
+  openExternalUrl: (url: string) => ipcRenderer.invoke("open-external-url", url),
   quitApp: () => ipcRenderer.invoke("quit-app"),
   invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
   

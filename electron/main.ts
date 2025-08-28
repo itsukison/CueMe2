@@ -6,6 +6,7 @@ import { ShortcutsHelper } from "./shortcuts"
 import { ProcessingHelper } from "./ProcessingHelper"
 import { AuthService } from "./AuthService"
 import { QnAService } from "./QnAService"
+import { UsageTracker } from "./UsageTracker"
 
 export class AppState {
   private static instance: AppState | null = null
@@ -16,6 +17,7 @@ export class AppState {
   public processingHelper: ProcessingHelper
   public authService: AuthService
   public qnaService: QnAService
+  public usageTracker: UsageTracker
   private tray: Tray | null = null
 
   // View management
@@ -72,6 +74,9 @@ export class AppState {
 
     // Initialize QnAService with AuthService's Supabase client
     this.qnaService = new QnAService(this.authService.getSupabaseClient())
+
+    // Initialize UsageTracker
+    this.usageTracker = new UsageTracker()
 
     // Set QnAService in ProcessingHelper's LLMHelper
     this.processingHelper.getLLMHelper().setQnAService(this.qnaService)

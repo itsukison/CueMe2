@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery } from "react-query";
-import { MessageCircle, Send, User, LogIn } from "lucide-react";
+import { MessageCircle, Send, LogOut, User, Settings } from "lucide-react";
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue";
 import {
   Toast,
@@ -10,7 +10,6 @@ import {
   ToastMessage,
 } from "../components/ui/toast";
 import QueueCommands from "../components/Queue/QueueCommands";
-import { AuthDialog } from "../components/ui/auth-dialog.tsx";
 
 interface ResponseMode {
   type: "plain" | "qna";
@@ -18,19 +17,14 @@ interface ResponseMode {
   collectionName?: string;
 }
 
-interface AuthState {
-  user: any | null;
-  session: any | null;
-  isLoading: boolean;
-}
-
 interface QueueProps {
   setView: React.Dispatch<
     React.SetStateAction<"queue" | "solutions" | "debug">
   >;
+  onSignOut: () => Promise<{ success: boolean; error?: string }>;
 }
 
-const Queue: React.FC<QueueProps> = ({ setView }) => {
+const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<ToastMessage>({
     title: "",
@@ -50,13 +44,8 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
-  // Auth state
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    session: null,
-    isLoading: true,
-  });
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  // Profile dropdown state
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   // Response mode state
   const [responseMode, setResponseMode] = useState<ResponseMode>({
@@ -101,37 +90,6 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     setToastOpen(true);
   };
 
-  // Initialize auth state
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const initialState = await window.electronAPI.invoke("auth-get-state");
-        setAuthState(initialState);
-      } catch (error) {
-        console.error("Error getting initial auth state:", error);
-        setAuthState({ user: null, session: null, isLoading: false });
-      }
-    };
-
-    initAuth();
-
-    // Poll for auth state changes as a workaround
-    const pollAuthState = async () => {
-      try {
-        const currentState = await window.electronAPI.invoke("auth-get-state");
-        setAuthState(currentState);
-      } catch (error) {
-        console.error("Error polling auth state:", error);
-      }
-    };
-
-    const intervalId = setInterval(pollAuthState, 2000); // Poll every 2 seconds
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
-
   const handleDeleteScreenshot = async (index: number) => {
     const screenshotToDelete = screenshots[index];
 
@@ -165,12 +123,8 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     try {
       let response: string;
 
-      if (
-        responseMode.type === "qna" &&
-        responseMode.collectionId &&
-        authState.user
-      ) {
-        // Use RAG-enabled chat
+      if (responseMode.type === "qna" && responseMode.collectionId) {
+        // Use RAG-enabled chat (user is guaranteed to be authenticated at this point)
         const result = await window.electronAPI.invoke(
           "gemini-chat-rag",
           currentInput,
@@ -291,52 +245,31 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     setIsChatOpen(!isChatOpen);
   };
 
-  // Auth handlers
-  const handleSignIn = async (email: string, password: string) => {
+  // Logout handler
+  const handleLogout = async () => {
     try {
-      return await window.electronAPI.invoke("auth-sign-in", email, password);
-    } catch (error) {
-      console.error("Sign in error:", error);
-      return { success: false, error: "Sign in failed" };
-    }
-  };
-
-  const handleSignUp = async (email: string, password: string) => {
-    try {
-      return await window.electronAPI.invoke("auth-sign-up", email, password);
-    } catch (error) {
-      console.error("Sign up error:", error);
-      return { success: false, error: "Sign up failed" };
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      const result = await window.electronAPI.invoke("auth-sign-out");
+      const result = await onSignOut();
       if (result.success) {
-        // Reset response mode to plain when signing out
+        // Reset response mode when signing out
         setResponseMode({ type: "plain" });
-        // Removed toast notification
+        // Clear chat messages
+        setChatMessages([]);
       }
-      return result;
     } catch (error) {
-      console.error("Sign out error:", error);
-      return { success: false, error: "Sign out failed" };
+      console.error("Logout error:", error);
+      showToast("エラー", "ログアウトに失敗しました", "error");
     }
+    setIsProfileDropdownOpen(false);
   };
 
-  const handleResetPassword = async (email: string) => {
-    try {
-      return await window.electronAPI.invoke("auth-reset-password", email);
-    } catch (error) {
-      console.error("Reset password error:", error);
-      return { success: false, error: "Password reset failed" };
-    }
+  // Settings handler
+  const handleSettings = () => {
+    window.electronAPI.invoke("open-external-url", "https://www.cueme.ink/");
+    setIsProfileDropdownOpen(false);
   };
 
   const handleResponseModeChange = (mode: ResponseMode) => {
     setResponseMode(mode);
-    // Removed toast notifications when switching modes
   };
 
   // Keyboard shortcuts handler
@@ -383,6 +316,23 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
     return cleanup;
   }, []);
 
+  // Click outside handler for profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isProfileDropdownOpen &&
+        !(event.target as Element)?.closest(".profile-dropdown-container")
+      ) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isProfileDropdownOpen]);
+
   return (
     <div
       ref={barRef}
@@ -405,7 +355,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
             <ToastDescription>{toastMessage.description}</ToastDescription>
           </Toast>
 
-          {/* Main Bar with Fixed Auth Button */}
+          {/* Main Bar with Logout Button */}
           <div className="w-fit overflow-visible relative">
             <div className="flex items-center gap-2">
               <QueueCommands
@@ -414,31 +364,46 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
                 onChatToggle={handleChatToggle}
                 responseMode={responseMode}
                 onResponseModeChange={handleResponseModeChange}
-                isAuthenticated={!!authState.user}
+                isAuthenticated={true} // User is always authenticated when Queue is rendered
               />
             </div>
 
-            {/* Auth Button/Icon - Fixed position relative to the main bar */}
+            {/* Profile Icon with Dropdown - Fixed position relative to the main bar */}
             <div className="absolute top-0 right-0 transform translate-x-full mt-1 pl-2">
-              {authState.user ? (
+              <div className="relative profile-dropdown-container">
                 <button
-                  onClick={() => setIsAuthDialogOpen(true)}
+                  onClick={() =>
+                    setIsProfileDropdownOpen(!isProfileDropdownOpen)
+                  }
                   className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black hover:bg-black/80"
                   type="button"
-                  title={`ログイン済み: ${authState.user.email}`}
+                  title="プロフィール"
                 >
-                  <User className="w-3 h-3 text-green-400" />
+                  <User className="w-3 h-3 text-emerald-600" />
                 </button>
-              ) : (
-                <button
-                  onClick={() => setIsAuthDialogOpen(true)}
-                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black hover:bg-black/80"
-                  type="button"
-                  title="ログイン"
-                >
-                  <User className="w-3 h-3 text-white/70" />
-                </button>
-              )}
+
+                {/* Profile Dropdown Menu */}
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-32 bg-black/80 backdrop-blur-md rounded-lg border border-white/20 shadow-lg z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={handleSettings}
+                        className="w-full px-3 py-2 text-left text-xs text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                      >
+                        <Settings className="w-3 h-3" />
+                        設定
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full px-3 py-2 text-left text-xs text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                      >
+                        <LogOut className="w-3 h-3" />
+                        ログアウト
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {/* Conditional Chat Interface */}
@@ -557,20 +522,13 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
         </div>
       </div>
 
-      {/* Inline Auth Form - appears below the bar for both login and logout */}
-      {isAuthDialogOpen && (
-        <div className="mt-2 w-full">
-          <AuthDialog
-            isOpen={isAuthDialogOpen}
-            onOpenChange={setIsAuthDialogOpen}
-            authState={authState}
-            onSignIn={handleSignIn}
-            onSignUp={handleSignUp}
-            onSignOut={handleSignOut}
-            onResetPassword={handleResetPassword}
-          />
-        </div>
-      )}
+      <div ref={contentRef}>
+        <ScreenshotQueue
+          isLoading={false}
+          screenshots={screenshots}
+          onDeleteScreenshot={handleDeleteScreenshot}
+        />
+      </div>
     </div>
   );
 };

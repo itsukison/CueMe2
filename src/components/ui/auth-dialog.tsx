@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "./dialog";
 import {
   User,
@@ -9,6 +9,7 @@ import {
   Loader2,
   LogOut,
   LogIn,
+  Move,
 } from "lucide-react";
 
 interface AuthState {
@@ -53,6 +54,13 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Dragging state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!isOpen) {
       // Reset form when dialog closes
@@ -62,8 +70,56 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
       setError("");
       setSuccess("");
       setMode("signin");
+      setPosition({ x: 0, y: 0 }); // Reset position when dialog closes
     }
   }, [isOpen]);
+
+  // Dragging handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!dialogRef.current) return;
+    
+    const rect = dialogRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      
+      // Calculate position relative to viewport
+      const newX = e.clientX - dragOffset.x - window.innerWidth / 2;
+      const newY = e.clientY - dragOffset.y - window.innerHeight / 2;
+      
+      // Constrain to viewport boundaries
+      const maxX = window.innerWidth / 2 - 200; // Account for dialog width
+      const maxY = window.innerHeight / 2 - 150; // Account for dialog height
+      const minX = -window.innerWidth / 2 + 200;
+      const minY = -window.innerHeight / 2 + 150;
+      
+      const constrainedX = Math.max(minX, Math.min(maxX, newX));
+      const constrainedY = Math.max(minY, Math.min(maxY, newY));
+      
+      setPosition({ x: constrainedX, y: constrainedY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,143 +187,207 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
   };
 
   if (authState.user) {
-    // User is authenticated - show inline logout form with same styling
+    // User is authenticated - show simple confirmation dialog
     return (
-      <div className="w-full liquid-glass chat-container p-4 relative">
-        {/* Close Button */}
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center transition-all"
-          type="button"
-          title="閉じる"
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent 
+          ref={dialogRef}
+          className="w-96 max-w-md bg-black/80 backdrop-blur-md border border-white/20 rounded-lg p-0 overflow-hidden draggable-dialog"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
+            zIndex: 9999,
+          }}
         >
-          <svg
-            className="w-2.5 h-2.5 text-white/70"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          {/* Draggable Header */}
+          <div
+            ref={dragRef}
+            className="flex items-center justify-between p-4 border-b border-white/10 cursor-move select-none bg-white/5"
+            onMouseDown={handleMouseDown}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-
-        {error && (
-          <div className="mb-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg">
-            <p className="text-xs text-red-200 text-center">{error}</p>
-          </div>
-        )}
-
-        <div className="flex gap-2 items-center pr-8">
-          <div className="flex-1 flex items-center gap-2 text-white/70 text-xs">
-            <User className="w-3 h-3" />
-            <span className="truncate">{authState.user.email}</span>
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-emerald-600" />
+              <h3 className="text-sm font-medium text-white">ユーザーアカウント</h3>
+            </div>
+            <Move className="w-4 h-4 text-white/40" />
           </div>
 
-          <button
-            onClick={handleSignOut}
-            disabled={loading}
-            className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium border border-white/20 flex items-center gap-1"
-          >
-            {loading ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <>
-                <LogOut className="w-3 h-3" />
-                ログアウト
-              </>
+          <div className="p-4 space-y-3">
+            {error && (
+              <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                <p className="text-xs text-red-200 text-center">{error}</p>
+              </div>
             )}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
-  // User is not authenticated - show inline form below the bar (no dialog wrapper)
-  return (
-    <div className="w-full liquid-glass chat-container p-4 relative">
-      {/* Close Button */}
-      <button
-        onClick={() => onOpenChange(false)}
-        className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center transition-all"
-        type="button"
-        title="閉じる"
-      >
-        <svg
-          className="w-2.5 h-2.5 text-white/70"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+            <div className="flex items-center gap-3 text-white/80">
+              <User className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm truncate">{authState.user.email}</span>
+            </div>
 
-      {error && (
-        <div className="mb-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg">
-          <p className="text-xs text-red-200 text-center">{error}</p>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-2 pr-8">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Mail className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white/40" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-7 pr-2 py-2 text-xs bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
-              placeholder="メールアドレス"
-              required
-            />
-          </div>
-
-          <div className="relative flex-1">
-            <Lock className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white/40" />
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-7 pr-8 py-2 text-xs bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
-              placeholder="パスワード"
-              required
-            />
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60"
+              onClick={handleSignOut}
+              disabled={loading}
+              className="w-full px-4 py-3 text-sm bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium border border-red-500/30 flex items-center justify-center gap-2"
             >
-              {showPassword ? (
-                <EyeOff className="w-3 h-3" />
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Eye className="w-3 h-3" />
+                <>
+                  <LogOut className="w-4 h-4" />
+                  ログアウト
+                </>
               )}
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium border border-white/20"
-          >
-            {loading ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              "ログイン"
-            )}
-          </button>
+  // User is not authenticated - show login dialog
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent 
+        ref={dialogRef}
+        className="w-96 max-w-md bg-black/80 backdrop-blur-md border border-white/20 rounded-lg p-0 overflow-hidden draggable-dialog"
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
+          zIndex: 9999,
+        }}
+      >
+        {/* Draggable Header */}
+        <div
+          ref={dragRef}
+          className="flex items-center justify-between p-4 border-b border-white/10 cursor-move select-none bg-white/5"
+          onMouseDown={handleMouseDown}
+        >
+          <div className="flex items-center gap-2">
+            <LogIn className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-sm font-medium text-white">
+              {mode === "signin" ? "ログイン" : mode === "signup" ? "アカウント作成" : "パスワードリセット"}
+            </h3>
+          </div>
+          <Move className="w-4 h-4 text-white/40" />
         </div>
-      </form>
-    </div>
+
+        <div className="p-4 space-y-4">
+          {error && (
+            <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+              <p className="text-xs text-red-200 text-center">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+              <p className="text-xs text-green-200 text-center">{success}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-3 py-3 text-sm bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
+                placeholder="メールアドレス"
+                required
+              />
+            </div>
+
+            {mode !== "reset" && (
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-10 py-3 text-sm bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
+                  placeholder="パスワード"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full pl-10 pr-3 py-3 text-sm bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-white/40 text-white placeholder-white/60"
+                  placeholder="パスワード再入力"
+                  required
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full px-4 py-3 text-sm bg-emerald-700/80 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium border border-emerald-600/30"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+              ) : mode === "signin" ? (
+                "ログイン"
+              ) : mode === "signup" ? (
+                "アカウント作成"
+              ) : (
+                "リセットメール送信"
+              )}
+            </button>
+          </form>
+
+          <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+            {mode === "signin" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setMode("signup")}
+                  className="text-xs text-white/60 hover:text-white/80 transition-colors"
+                >
+                  アカウントを作成する
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("reset")}
+                  className="text-xs text-white/60 hover:text-white/80 transition-colors"
+                >
+                  パスワードを忘れた方
+                </button>
+              </>
+            )}
+            {mode !== "signin" && (
+              <button
+                type="button"
+                onClick={() => setMode("signin")}
+                className="text-xs text-white/60 hover:text-white/80 transition-colors"
+              >
+                ログインに戻る
+              </button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
