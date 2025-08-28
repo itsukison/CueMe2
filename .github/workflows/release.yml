@@ -38,30 +38,44 @@ jobs:
         with:
           node-version: 18
 
-      - name: Setup pnpm
+      - name: Install pnpm
         uses: pnpm/action-setup@v2
-        if: hashFiles('pnpm-lock.yaml') != ''
         with:
-          version: latest
+          version: 8
+          
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Clean package manager cache
+        shell: bash
         run: |
           echo "Cleaning package manager cache..."
-          rm -rf node_modules
-          npm cache clean --force || true
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            if [ -d "node_modules" ]; then
+              rm -rf node_modules || true
+            fi
+            npm cache clean --force || true
+          else
+            rm -rf node_modules || true
+            npm cache clean --force || true
+          fi
 
       - name: Install dependencies
+        shell: bash
         run: |
-          if [ -f "pnpm-lock.yaml" ]; then
-            echo "Using pnpm..."
-            pnpm install --frozen-lockfile
-          elif [ -f "package-lock.json" ]; then
-            echo "Using npm..."
-            npm ci
-          else
-            echo "Using npm (fallback)..."
-            npm install
-          fi
+          echo "Installing dependencies with pnpm..."
+          pnpm install --frozen-lockfile
 
       - name: Install Linux dependencies
         if: matrix.platform == 'linux'
@@ -72,6 +86,7 @@ jobs:
           echo "Linux dependencies installed successfully"
 
       - name: Build and release for platform
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -81,18 +96,19 @@ jobs:
         run: |
           echo "Starting build for platform: ${{ matrix.platform }}"
           echo "Node version: $(node --version)"
-          echo "NPM version: $(npm --version)"
+          echo "pnpm version: $(pnpm --version)"
           echo "Current directory: $(pwd)"
           
-          echo "Running npm run build..."
-          npm run build
+          echo "Running pnpm run build..."
+          pnpm run build
           
           echo "Running electron-builder..."
-          npx electron-builder --publish=always --${{ matrix.platform }} --verbose
+          pnpm exec electron-builder --publish=always --${{ matrix.platform }} --verbose
           
           echo "Build completed for ${{ matrix.platform }}"
 
       - name: Debug - List build artifacts
+        shell: bash
         run: |
           echo "Listing release directory contents:"
           ls -la release/ || echo "No release directory found"
