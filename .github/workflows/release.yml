@@ -38,24 +38,13 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-          
-      - name: Setup pnpm cache
+      - name: Setup npm cache
         uses: actions/cache@v3
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-node-
 
       - name: Clean package manager cache
         shell: bash
@@ -74,8 +63,8 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          echo "Installing dependencies with pnpm..."
-          pnpm install --frozen-lockfile
+          echo "Installing dependencies with npm..."
+          npm ci
 
       - name: Install Linux dependencies
         if: matrix.platform == 'linux'
@@ -96,14 +85,14 @@ jobs:
         run: |
           echo "Starting build for platform: ${{ matrix.platform }}"
           echo "Node version: $(node --version)"
-          echo "pnpm version: $(pnpm --version)"
+          echo "npm version: $(npm --version)"
           echo "Current directory: $(pwd)"
           
-          echo "Running pnpm run build..."
-          pnpm run build
+          echo "Running npm run build..."
+          npm run build
           
           echo "Running electron-builder..."
-          pnpm exec electron-builder --publish=always --${{ matrix.platform }} --verbose
+          npm run release
           
           echo "Build completed for ${{ matrix.platform }}"
 
