@@ -1,12 +1,12 @@
 // src/components/ui/dialog.tsx
 
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { cn } from "../../lib/utils"
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cn } from "../../lib/utils";
 
-const Dialog = DialogPrimitive.Root
-const DialogTrigger = DialogPrimitive.Trigger
-const DialogPortal = DialogPrimitive.Portal
+const Dialog = DialogPrimitive.Root;
+const DialogTrigger = DialogPrimitive.Trigger;
+const DialogPortal = DialogPrimitive.Portal;
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -14,40 +14,33 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 bg-black bg-opacity-50 z-50", className)}
+    className={cn("fixed inset-0 bg-transparent z-50", className)}
     {...props}
   />
-))
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+));
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPortal container={document.body}>
+    <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
         "fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-        "bg-black/60 p-4 rounded-lg",
+        "bg-white p-4 rounded-lg shadow-xl",
         className
       )}
-      style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 9999,
-        ...props.style
-      }}
       {...props}
     >
       {children}
     </DialogPrimitive.Content>
   </DialogPortal>
-))
-DialogContent.displayName = DialogPrimitive.Content.displayName
+));
+DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-const DialogClose = DialogPrimitive.Close
+const DialogClose = DialogPrimitive.Close;
 
-export { Dialog, DialogTrigger, DialogContent, DialogClose }
+export { Dialog, DialogTrigger, DialogContent, DialogClose };

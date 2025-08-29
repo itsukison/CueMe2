@@ -73,6 +73,39 @@ export function initializeIpcHandlers(appState: AppState): void {
   // IPC handler for analyzing audio from base64 data
   ipcMain.handle("analyze-audio-base64", async (event, data: string, mimeType: string, collectionId?: string) => {
     try {
+      // Check if user is authenticated and try usage tracking (optional)
+      const user = appState.authService.getCurrentUser();
+      const accessToken = appState.authService.getAccessToken();
+      
+      if (user && accessToken) {
+        try {
+          // Check usage limits for 2 questions (transcription + analysis)
+          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+          if (!usageCheck.allowed) {
+            throw new Error(usageCheck.error || 'Usage limit exceeded');
+          }
+          
+          // Check if we can use 2 questions (for transcription + analysis)
+          if (usageCheck.remaining !== undefined && usageCheck.remaining < 2) {
+            throw new Error(`Insufficient usage remaining. This operation requires 2 questions but only ${usageCheck.remaining} remaining.`);
+          }
+
+          // Increment usage by 2 (transcription + analysis)
+          const usageResult1 = await appState.usageTracker.incrementQuestionUsage(accessToken);
+          if (!usageResult1.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult1.error);
+          } else {
+            const usageResult2 = await appState.usageTracker.incrementQuestionUsage(accessToken);
+            if (!usageResult2.success) {
+              console.warn('Usage tracking failed for second increment, but continuing with request:', usageResult2.error);
+            }
+          }
+        } catch (usageError) {
+          console.warn('Usage tracking error (continuing anyway):', usageError);
+          // Don't throw error - allow the request to continue for backward compatibility
+        }
+      }
+
       const result = await appState.processingHelper.processAudioBase64(data, mimeType, collectionId)
       return result
     } catch (error: any) {
@@ -84,6 +117,39 @@ export function initializeIpcHandlers(appState: AppState): void {
   // IPC handler for analyzing audio from file path
   ipcMain.handle("analyze-audio-file", async (event, path: string, collectionId?: string) => {
     try {
+      // Check if user is authenticated and try usage tracking (optional)
+      const user = appState.authService.getCurrentUser();
+      const accessToken = appState.authService.getAccessToken();
+      
+      if (user && accessToken) {
+        try {
+          // Check usage limits for 2 questions (transcription + analysis)
+          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+          if (!usageCheck.allowed) {
+            throw new Error(usageCheck.error || 'Usage limit exceeded');
+          }
+          
+          // Check if we can use 2 questions (for transcription + analysis)
+          if (usageCheck.remaining !== undefined && usageCheck.remaining < 2) {
+            throw new Error(`Insufficient usage remaining. This operation requires 2 questions but only ${usageCheck.remaining} remaining.`);
+          }
+
+          // Increment usage by 2 (transcription + analysis)
+          const usageResult1 = await appState.usageTracker.incrementQuestionUsage(accessToken);
+          if (!usageResult1.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult1.error);
+          } else {
+            const usageResult2 = await appState.usageTracker.incrementQuestionUsage(accessToken);
+            if (!usageResult2.success) {
+              console.warn('Usage tracking failed for second increment, but continuing with request:', usageResult2.error);
+            }
+          }
+        } catch (usageError) {
+          console.warn('Usage tracking error (continuing anyway):', usageError);
+          // Don't throw error - allow the request to continue for backward compatibility
+        }
+      }
+
       const result = await appState.processingHelper.processAudioFile(path, collectionId)
       return result
     } catch (error: any) {
@@ -95,6 +161,30 @@ export function initializeIpcHandlers(appState: AppState): void {
   // IPC handler for analyzing image from file path
   ipcMain.handle("analyze-image-file", async (event, path: string) => {
     try {
+      // Check if user is authenticated and try usage tracking (optional)
+      const user = appState.authService.getCurrentUser();
+      const accessToken = appState.authService.getAccessToken();
+      
+      if (user && accessToken) {
+        try {
+          // Check usage limits and increment if allowed
+          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+          if (!usageCheck.allowed) {
+            throw new Error(usageCheck.error || 'Usage limit exceeded');
+          }
+
+          // Increment usage before processing
+          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+          if (!usageResult.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
+            // Don't throw error - allow the request to continue
+          }
+        } catch (usageError) {
+          console.warn('Usage tracking error (continuing anyway):', usageError);
+          // Don't throw error - allow the request to continue for backward compatibility
+        }
+      }
+
       const result = await appState.processingHelper.getLLMHelper().analyzeImageFile(path)
       return result
     } catch (error: any) {
@@ -105,20 +195,27 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   ipcMain.handle("gemini-chat", async (event, message: string) => {
     try {
-      // Check if user is authenticated
+      // Check if user is authenticated and try usage tracking (optional)
       const user = appState.authService.getCurrentUser();
       const accessToken = appState.authService.getAccessToken();
+      
       if (user && accessToken) {
-        // Check usage limits and increment if allowed
-        const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
-        if (!usageCheck.allowed) {
-          throw new Error(usageCheck.error || 'Usage limit exceeded');
-        }
+        try {
+          // Check usage limits and increment if allowed
+          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+          if (!usageCheck.allowed) {
+            throw new Error(usageCheck.error || 'Usage limit exceeded');
+          }
 
-        // Increment usage before processing
-        const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
-        if (!usageResult.success) {
-          throw new Error(usageResult.error || 'Usage tracking failed');
+          // Increment usage before processing
+          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+          if (!usageResult.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
+            // Don't throw error - allow the request to continue
+          }
+        } catch (usageError) {
+          console.warn('Usage tracking error (continuing anyway):', usageError);
+          // Don't throw error - allow the request to continue for backward compatibility
         }
       }
 
@@ -133,20 +230,27 @@ export function initializeIpcHandlers(appState: AppState): void {
   // RAG-enabled chat handler
   ipcMain.handle("gemini-chat-rag", async (event, message: string, collectionId?: string) => {
     try {
-      // Check if user is authenticated
+      // Check if user is authenticated and try usage tracking (optional)
       const user = appState.authService.getCurrentUser();
       const accessToken = appState.authService.getAccessToken();
+      
       if (user && accessToken) {
-        // Check usage limits and increment if allowed
-        const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
-        if (!usageCheck.allowed) {
-          throw new Error(usageCheck.error || 'Usage limit exceeded');
-        }
+        try {
+          // Check usage limits and increment if allowed
+          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+          if (!usageCheck.allowed) {
+            throw new Error(usageCheck.error || 'Usage limit exceeded');
+          }
 
-        // Increment usage before processing
-        const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
-        if (!usageResult.success) {
-          throw new Error(usageResult.error || 'Usage tracking failed');
+          // Increment usage before processing
+          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+          if (!usageResult.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
+            // Don't throw error - allow the request to continue
+          }
+        } catch (usageError) {
+          console.warn('Usage tracking error (continuing anyway):', usageError);
+          // Don't throw error - allow the request to continue for backward compatibility
         }
       }
 

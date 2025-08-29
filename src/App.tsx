@@ -57,6 +57,8 @@ declare global {
       moveWindowDown: () => Promise<void>;
       quitApp: () => Promise<void>;
       invoke: (channel: string, ...args: any[]) => Promise<any>;
+      onVoiceRecordingTrigger: (callback: () => void) => () => void;
+      onChatToggle: (callback: () => void) => () => void;
     };
   }
 }
@@ -105,7 +107,14 @@ const App: React.FC = () => {
     const pollAuthState = async () => {
       try {
         const currentState = await window.electronAPI.invoke("auth-get-state");
-        setAuthState(currentState);
+        setAuthState((prevState) => {
+          // If user was previously unauthenticated and now is authenticated, show window
+          if (!prevState.user && currentState.user && !currentState.isLoading) {
+            console.log("User signed in successfully, showing window");
+            window.electronAPI.invoke("center-and-show-window");
+          }
+          return currentState;
+        });
       } catch (error) {
         console.error("Error polling auth state:", error);
       }
@@ -253,20 +262,22 @@ const App: React.FC = () => {
   // If user is not authenticated, show auth dialog
   if (!authState.user && !authState.isLoading) {
     return (
-      <div ref={containerRef} className="min-h-0">
+      <div
+        ref={containerRef}
+        className="w-full flex items-center justify-center"
+        style={{ width: "500px", height: "600px" }}
+      >
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
-            <div className="flex items-center justify-center min-h-screen p-4">
-              <AuthDialog
-                isOpen={true}
-                onOpenChange={() => {}} // Prevent closing until authenticated
-                authState={authState}
-                onSignIn={handleSignIn}
-                onSignUp={handleSignUp}
-                onSignOut={handleSignOut}
-                onResetPassword={handleResetPassword}
-              />
-            </div>
+            <AuthDialog
+              isOpen={true}
+              onOpenChange={() => {}} // Prevent closing until authenticated
+              authState={authState}
+              onSignIn={handleSignIn}
+              onSignUp={handleSignUp}
+              onSignOut={handleSignOut}
+              onResetPassword={handleResetPassword}
+            />
             <ToastViewport />
           </ToastProvider>
         </QueryClientProvider>
@@ -277,14 +288,19 @@ const App: React.FC = () => {
   // If auth is loading, show loading
   if (authState.isLoading) {
     return (
-      <div ref={containerRef} className="min-h-0">
+      <div
+        ref={containerRef}
+        className="w-full flex items-center justify-center"
+        style={{ width: "500px", height: "600px" }}
+      >
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-white text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-                <p>認証状態を確認中...</p>
-              </div>
+            <div className="text-center" style={{ color: "#013220" }}>
+              <div
+                className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2"
+                style={{ borderColor: "#013220" }}
+              ></div>
+              <p>認証状態を確認中...</p>
             </div>
             <ToastViewport />
           </ToastProvider>

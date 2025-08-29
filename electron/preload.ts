@@ -42,6 +42,8 @@ interface ElectronAPI {
   authGetState: () => Promise<{ user: any | null; session: any | null; isLoading: boolean }>
   authResetPassword: (email: string) => Promise<{ success: boolean; error?: string }>
   onAuthStateChange: (callback: (state: { user: any | null; session: any | null; isLoading: boolean }) => void) => () => void
+  onVoiceRecordingTrigger: (callback: () => void) => () => void
+  onChatToggle: (callback: () => void) => () => void
 }
 
 export const PROCESSING_EVENTS = {
@@ -192,6 +194,20 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("auth-state-changed", subscription)
     return () => {
       ipcRenderer.removeListener("auth-state-changed", subscription)
+    }
+  },
+  onVoiceRecordingTrigger: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on("trigger-voice-recording", subscription)
+    return () => {
+      ipcRenderer.removeListener("trigger-voice-recording", subscription)
+    }
+  },
+  onChatToggle: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on("toggle-chat", subscription)
+    return () => {
+      ipcRenderer.removeListener("toggle-chat", subscription)
     }
   }
 } as ElectronAPI)

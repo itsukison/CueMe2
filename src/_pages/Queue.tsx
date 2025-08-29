@@ -285,26 +285,19 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
       setIsChatOpen((prev) => !prev);
     };
 
-    // Set up keyboard shortcut listeners if electronAPI is available
+    // Set up keyboard shortcut listeners using proper electronAPI pattern
     const setupIpcListeners = () => {
       try {
         if (window.electronAPI) {
-          // Listen for IPC messages from main process
-          const ipcRenderer = window.require
-            ? window.require("electron").ipcRenderer
-            : null;
-          if (ipcRenderer) {
-            ipcRenderer.on("trigger-voice-recording", handleVoiceRecording);
-            ipcRenderer.on("toggle-chat", handleChatToggle);
+          const cleanupVoiceRecording =
+            window.electronAPI.onVoiceRecordingTrigger(handleVoiceRecording);
+          const cleanupChatToggle =
+            window.electronAPI.onChatToggle(handleChatToggle);
 
-            return () => {
-              ipcRenderer.removeListener(
-                "trigger-voice-recording",
-                handleVoiceRecording
-              );
-              ipcRenderer.removeListener("toggle-chat", handleChatToggle);
-            };
-          }
+          return () => {
+            cleanupVoiceRecording();
+            cleanupChatToggle();
+          };
         }
       } catch (error) {
         console.log("IPC setup skipped:", error);

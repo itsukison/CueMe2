@@ -61,6 +61,15 @@ export class ProcessingHelper {
       this.appState.setView("solutions")
       this.currentProcessingAbortController = new AbortController()
       try {
+        // Check usage limits before processing (graceful degradation)
+        const usageCheck = await this.checkAndIncrementUsage(1);
+        if (!usageCheck.allowed) {
+          console.warn('Usage limit exceeded for automatic screenshot processing:', usageCheck.error);
+          // Continue with processing but warn user
+          mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR, usageCheck.error);
+          return;
+        }
+
         const imageResult = await this.llmHelper.analyzeImageFile(lastPath);
         const problemInfo = {
           problem_statement: imageResult.text,
@@ -93,6 +102,15 @@ export class ProcessingHelper {
       this.currentExtraProcessingAbortController = new AbortController()
 
       try {
+        // Check usage limits for 2 questions (generateSolution + debugSolutionWithImages)
+        const usageCheck = await this.checkAndIncrementUsage(2);
+        if (!usageCheck.allowed) {
+          console.warn('Usage limit exceeded for debug processing:', usageCheck.error);
+          // Continue with processing but warn user
+          mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.DEBUG_ERROR, usageCheck.error);
+          return;
+        }
+
         // Get problem info and current solution
         const problemInfo = this.appState.getProblemInfo()
         if (!problemInfo) {
@@ -154,5 +172,63 @@ export class ProcessingHelper {
 
   public getLLMHelper() {
     return this.llmHelper;
+  }
+
+  /**
+   * Check usage limits and increment counter for Gemini API calls
+   * @param questionCount Number of questions to be used (default: 1)
+   * @returns Promise with success status and remaining count
+   */
+  public async checkAndIncrementUsage(questionCount: number = 1): Promise<{ allowed: boolean; remaining?: number; error?: string }> {
+    try {
+      // Check if user is authenticated
+      const user = this.appState.authService.getCurrentUser();
+      const accessToken = this.appState.authService.getAccessToken();
+      
+      if (!user || !accessToken) {
+        // If no authentication, allow the operation (guest mode)
+        console.log('No authentication found, allowing operation without usage tracking');
+        return { allowed: true };
+      }
+
+      // Check usage limits
+      const usageCheck = await this.appState.usageTracker.checkCanAskQuestion(accessToken);
+      if (!usageCheck.allowed) {
+        return {
+          allowed: false,
+          error: usageCheck.error || 'Usage limit exceeded'
+        };
+      }
+      
+      // Check if we have enough remaining questions
+      if (usageCheck.remaining !== undefined && usageCheck.remaining < questionCount) {
+        return {
+          allowed: false,
+          error: `Insufficient usage remaining. This operation requires ${questionCount} questions but only ${usageCheck.remaining} remaining.`
+        };
+      }
+
+      // Increment usage for each question
+      for (let i = 0; i < questionCount; i++) {
+        const usageResult = await this.appState.usageTracker.incrementQuestionUsage(accessToken);
+        if (!usageResult.success) {
+          console.warn(`Usage tracking failed for increment ${i + 1}/${questionCount}:`, usageResult.error);
+          // Continue with operation even if tracking fails
+          break;
+        }
+      }
+
+      return {
+        allowed: true,
+        remaining: usageCheck.remaining ? usageCheck.remaining - questionCount : undefined
+      };
+    } catch (error) {
+      console.warn('Error in checkAndIncrementUsage (allowing operation to continue):', error);
+      // Allow operation to continue even if usage tracking fails
+      return {
+        allowed: true,
+        error: 'Usage tracking unavailable'
+      };
+    }
   }
 }
