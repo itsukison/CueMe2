@@ -2,34 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced Morphism Glass Effect Base */
-/* Glassmorphism Base */
+/* Modified Glass Effect Base - More Transparent, No Morphism */
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.08);
-  /* transparent frosty white */
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(0, 0, 0, 0.12);
+  /* More transparent background */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 1rem;
   position: relative;
   overflow: hidden;
 }
 
-
-/* Enhanced morphism glass with subtle shimmer effect */
+/* Removed shimmer effect */
 .liquid-glass::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.08),
-      transparent);
-  animation: shimmer 4s ease-in-out infinite;
-  pointer-events: none;
+  display: none;
 }
 
 @keyframes shimmer {
@@ -49,7 +36,7 @@
 /* Fallback for browsers without backdrop-filter support */
 @supports not (backdrop-filter: blur()) {
   .liquid-glass {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.25);
   }
 }
@@ -88,21 +75,20 @@ textarea,
 
 /* Add visual feedback for draggable area */
 .draggable-area:hover {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
-/* Enhanced morphism variant for darker elements */
+/* Modified variant for darker elements */
 .liquid-glass-dark {
-  background: rgba(0, 0, 0, 0.25);
-  /* lighter black so background shows */
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.1);
+  /* More transparent background */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 1rem;
 }
-
 
 /* Ensure content is not blurred */
 .glass-content {
@@ -112,22 +98,22 @@ textarea,
   -webkit-backdrop-filter: none;
 }
 
-/* Chat container specific morphism styling */
+/* Chat container specific styling - Modified */
 .liquid-glass.chat-container {
   min-height: auto;
   height: auto;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px) saturate(200%) brightness(85%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(85%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* Enhanced morphism bar variant for command bars */
+/* Command bars variant - Modified */
 .liquid-glass-bar {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px) saturate(180%) brightness(90%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(90%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 1rem;
   position: relative;
   overflow: hidden;
@@ -136,37 +122,26 @@ textarea,
   max-height: 32px !important;
 }
 
-/* Enhanced shimmer effect for bar variant */
+/* Removed shimmer effect for bar variant */
 .liquid-glass-bar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.08),
-      transparent);
-  animation: shimmer 4s ease-in-out infinite;
-  pointer-events: none;
+  display: none;
 }
 
-/* Morphism dropdown styling */
+/* Dropdown styling - Modified */
 .morphism-dropdown {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px) saturate(180%) brightness(85%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(85%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 1rem;
 }
 
-/* Morphism button styling */
+/* Button styling - Modified */
 .morphism-button {
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 6px;
   transition: all 0.2s ease;
 }
@@ -177,44 +152,44 @@ textarea,
   transform: translateY(-1px);
 }
 
-/* Morphism input styling */
+/* Input styling - Modified */
 .morphism-input {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .morphism-input:focus {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Additional morphism enhancements */
+/* Card styling - Modified */
 .morphism-card {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
 }
 
-/* Enhanced loading states with morphism */
+/* Loading states - Modified */
 .morphism-loading {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 6px;
 }
 
-/* Morphism overlay for loading states */
+/* Overlay for loading states - Modified */
 .morphism-overlay {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Enhanced hover states for morphism elements */
@@ -232,7 +207,7 @@ textarea,
 }
 
 .morphism-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
 

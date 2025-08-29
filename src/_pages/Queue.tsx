@@ -368,7 +368,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                   onClick={() =>
                     setIsProfileDropdownOpen(!isProfileDropdownOpen)
                   }
-                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black hover:bg-black/80"
+                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black/85 hover:bg-black/90 border border-white/25"
                   type="button"
                   title="プロフィール"
                 >
