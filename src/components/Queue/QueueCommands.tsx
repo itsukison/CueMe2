@@ -236,7 +236,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           <div className="relative" ref={dropdownRef}>
             <button
               ref={triggerRef}
-              className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 min-w-[80px]"
+              className="morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 min-w-[80px]"
               onClick={toggleDropdown}
               type="button"
             >
@@ -268,10 +268,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-[11px] leading-none">表示/非表示</span>
           <div className="flex gap-1">
-            <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+            <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
               <Command className="w-3 h-3" />
             </button>
-            <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+            <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70">
               B
             </button>
           </div>
@@ -285,10 +285,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-[11px] leading-none">Solve</span>
             <div className="flex gap-1">
-              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+              <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
                 <Command className="w-3 h-3" />
               </button>
-              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+              <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70">
                 ↵
               </button>
             </div>
@@ -298,8 +298,8 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         {/* Voice Recording Button */}
         <div className="flex items-center gap-2">
           <button
-            className={`bg-white/10 hover:bg-white/20 transition-colors rounded-md px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 ${
-              isRecording ? "bg-red-500/70 hover:bg-red-500/90" : ""
+            className={`morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 ${
+              isRecording ? "!bg-red-500/70 hover:!bg-red-500/90" : ""
             }`}
             onClick={handleRecordClick}
             type="button"
@@ -321,7 +321,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         {/* Chat Button */}
         <div className="flex items-center gap-2">
           <button
-            className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1"
+            className="morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1"
             onClick={onChatToggle}
             type="button"
           >
@@ -347,14 +347,14 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
       </div>
       {/* Audio Result Display */}
       {audioResult && (
-        <div className="mt-2 w-full liquid-glass chat-container p-4 text-white/90 text-xs relative">
+        <div className="mt-2 w-96 liquid-glass chat-container p-4 text-white/90 text-xs relative">
           {/* AI Response Label */}
           <div className="mb-2 text-sm font-medium text-white/80">AI回答</div>
 
           {/* Close Button */}
           <button
             onClick={() => setAudioResult(null)}
-            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all"
+            className="absolute top-2 right-2 w-5 h-5 rounded-full morphism-button flex items-center justify-center"
             type="button"
             title="閉じる"
           >
@@ -384,7 +384,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         createPortal(
           <div
             ref={dropdownRef}
-            className="fixed bg-black/90 backdrop-blur-md rounded-lg border border-white/20 shadow-xl z-[9999] max-h-64 overflow-y-auto"
+            className="fixed morphism-dropdown shadow-xl z-[9999] max-h-64 overflow-y-auto"
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,

@@ -377,18 +377,18 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
 
                 {/* Profile Dropdown Menu */}
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-black/80 backdrop-blur-md rounded-lg border border-white/20 shadow-lg z-50">
+                  <div className="absolute right-0 mt-2 w-32 morphism-dropdown shadow-lg z-50">
                     <div className="py-1">
                       <button
                         onClick={handleSettings}
-                        className="w-full px-3 py-2 text-left text-xs text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                        className="w-full px-3 py-2 text-left text-xs text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors rounded-md"
                       >
                         <Settings className="w-3 h-3" />
                         設定
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="w-full px-3 py-2 text-left text-xs text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                        className="w-full px-3 py-2 text-left text-xs text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors rounded-md"
                       >
                         <LogOut className="w-3 h-3" />
                         ログアウト
@@ -405,7 +405,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
               {/* Close Button */}
               <button
                 onClick={() => setIsChatOpen(false)}
-                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all z-10"
+                className="absolute top-2 right-2 w-6 h-6 rounded-full morphism-button flex items-center justify-center z-10"
                 type="button"
                 title="閉じる"
               >
@@ -424,11 +424,11 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                 </svg>
               </button>
 
-              <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg bg-black/20 backdrop-blur-md max-h-64 min-h-[120px] glass-content border border-white/20">
+              <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg morphism-dropdown max-h-64 min-h-[120px] glass-content morphism-scrollbar">
                 {chatMessages.length === 0 ? (
-                  <div className="text-sm text-white/80 text-center mt-8">
+                  <div className="text-sm text-white/80 text-center mt-8 pr-8">
                     <MessageCircle className="w-5 h-5 mx-auto mb-2 text-white/60" />
-                    Gemini 2.5 Flashとチャット
+                    CueMeとチャット
                     <br />
                     <span className="text-xs text-white/50">
                       スクリーンショットを撮る (Cmd+H) で自動分析
@@ -443,10 +443,10 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                       } mb-3`}
                     >
                       <div
-                        className={`max-w-[80%] px-3 py-1.5 rounded-xl text-xs backdrop-blur-sm border ${
+                        className={`max-w-[80%] px-3 py-1.5 rounded-xl text-xs border ${
                           msg.role === "user"
-                            ? "bg-gray-800/80 text-gray-100 ml-12 border-gray-600/40"
-                            : "bg-black/40 text-white/90 mr-12 border-white/30"
+                            ? "bg-gray-800/60 backdrop-blur-md text-gray-100 ml-12 border-gray-600/40"
+                            : "morphism-dropdown text-white/90 mr-12"
                         }`}
                         style={{ wordBreak: "break-word", lineHeight: "1.4" }}
                       >
@@ -457,7 +457,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                 )}
                 {chatLoading && (
                   <div className="flex justify-start mb-3">
-                    <div className="bg-black/40 text-white/80 px-3 py-1.5 rounded-xl text-xs backdrop-blur-sm border border-white/30 mr-12">
+                    <div className="morphism-dropdown text-white/80 px-3 py-1.5 rounded-xl text-xs mr-12">
                       <span className="inline-flex items-center">
                         <span className="animate-pulse text-white/40">●</span>
                         <span className="animate-pulse animation-delay-200 text-white/40">
@@ -481,7 +481,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
               >
                 <input
                   ref={chatInputRef}
-                  className="flex-1 rounded-lg px-3 py-2 bg-black/30 backdrop-blur-md text-white placeholder-white/60 text-xs focus:outline-none focus:ring-1 focus:ring-white/40 border border-white/40 transition-all duration-200"
+                  className="flex-1 morphism-input px-3 py-2 text-white placeholder-white/60 text-xs focus:outline-none transition-all duration-200"
                   placeholder="メッセージを入力..."
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
@@ -489,7 +489,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                 />
                 <button
                   type="submit"
-                  className="p-2 rounded-lg bg-gray-800/80 hover:bg-gray-900/80 border border-gray-600/60 flex items-center justify-center transition-all duration-200 backdrop-blur-sm disabled:opacity-50"
+                  className="p-2 morphism-button flex items-center justify-center disabled:opacity-50"
                   disabled={chatLoading || !chatInput.trim()}
                   tabIndex={-1}
                   aria-label="送信"
