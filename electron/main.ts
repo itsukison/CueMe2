@@ -64,19 +64,28 @@ export class AppState {
     // Initialize AuthService
     this.authService = new AuthService()
 
+    // Initialize UsageTracker (MUST be before auth listener setup)
+    this.usageTracker = new UsageTracker()
+
     // Listen for auth state changes and broadcast to renderer
     this.authService.onAuthStateChange((authState) => {
       const mainWindow = this.getMainWindow()
       if (mainWindow) {
         mainWindow.webContents.send('auth-state-changed', authState)
       }
+      
+      // Handle cache lifecycle based on auth state
+      if (authState.user && authState.session?.access_token) {
+        console.log('[AppState] User logged in, initializing usage cache')
+        this.usageTracker.initializeCache(authState.session.access_token)
+      } else {
+        console.log('[AppState] User logged out, clearing usage cache')
+        this.usageTracker.clearCache()
+      }
     })
 
     // Initialize QnAService with AuthService's Supabase client
     this.qnaService = new QnAService(this.authService.getSupabaseClient())
-
-    // Initialize UsageTracker
-    this.usageTracker = new UsageTracker()
 
     // Set QnAService in ProcessingHelper's LLMHelper
     this.processingHelper.getLLMHelper().setQnAService(this.qnaService)

@@ -79,26 +79,21 @@ export function initializeIpcHandlers(appState: AppState): void {
       
       if (user && accessToken) {
         try {
-          // Check usage limits for 2 questions (transcription + analysis)
+          // Check usage limits for 1 question (audio analysis counts as 1 user question)
           const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
           if (!usageCheck.allowed) {
             throw new Error(usageCheck.error || 'Usage limit exceeded');
           }
           
-          // Check if we can use 2 questions (for transcription + analysis)
-          if (usageCheck.remaining !== undefined && usageCheck.remaining < 2) {
-            throw new Error(`Insufficient usage remaining. This operation requires 2 questions but only ${usageCheck.remaining} remaining.`);
+          // Check if we can use 1 question (audio analysis counts as 1 user question)
+          if (usageCheck.remaining !== undefined && usageCheck.remaining < 1) {
+            throw new Error(`Insufficient usage remaining. This operation requires 1 question but only ${usageCheck.remaining} remaining.`);
           }
 
-          // Increment usage by 2 (transcription + analysis)
-          const usageResult1 = await appState.usageTracker.incrementQuestionUsage(accessToken);
-          if (!usageResult1.success) {
-            console.warn('Usage tracking failed, but continuing with request:', usageResult1.error);
-          } else {
-            const usageResult2 = await appState.usageTracker.incrementQuestionUsage(accessToken);
-            if (!usageResult2.success) {
-              console.warn('Usage tracking failed for second increment, but continuing with request:', usageResult2.error);
-            }
+          // Increment usage by 1 (audio analysis counts as 1 user question)
+          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken, 1);
+          if (!usageResult.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
           }
         } catch (usageError) {
           console.warn('Usage tracking error (continuing anyway):', usageError);
@@ -123,26 +118,21 @@ export function initializeIpcHandlers(appState: AppState): void {
       
       if (user && accessToken) {
         try {
-          // Check usage limits for 2 questions (transcription + analysis)
+          // Check usage limits for 1 question (audio analysis counts as 1 user question)
           const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
           if (!usageCheck.allowed) {
             throw new Error(usageCheck.error || 'Usage limit exceeded');
           }
           
-          // Check if we can use 2 questions (for transcription + analysis)
-          if (usageCheck.remaining !== undefined && usageCheck.remaining < 2) {
-            throw new Error(`Insufficient usage remaining. This operation requires 2 questions but only ${usageCheck.remaining} remaining.`);
+          // Check if we can use 1 question (audio analysis counts as 1 user question)
+          if (usageCheck.remaining !== undefined && usageCheck.remaining < 1) {
+            throw new Error(`Insufficient usage remaining. This operation requires 1 question but only ${usageCheck.remaining} remaining.`);
           }
 
-          // Increment usage by 2 (transcription + analysis)
-          const usageResult1 = await appState.usageTracker.incrementQuestionUsage(accessToken);
-          if (!usageResult1.success) {
-            console.warn('Usage tracking failed, but continuing with request:', usageResult1.error);
-          } else {
-            const usageResult2 = await appState.usageTracker.incrementQuestionUsage(accessToken);
-            if (!usageResult2.success) {
-              console.warn('Usage tracking failed for second increment, but continuing with request:', usageResult2.error);
-            }
+          // Increment usage by 1 (audio analysis counts as 1 user question)
+          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken, 1);
+          if (!usageResult.success) {
+            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
           }
         } catch (usageError) {
           console.warn('Usage tracking error (continuing anyway):', usageError);
