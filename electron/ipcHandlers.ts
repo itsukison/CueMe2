@@ -190,22 +190,21 @@ export function initializeIpcHandlers(appState: AppState): void {
       const accessToken = appState.authService.getAccessToken();
       
       if (user && accessToken) {
-        try {
-          // Check usage limits and increment if allowed
-          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
-          if (!usageCheck.allowed) {
-            throw new Error(usageCheck.error || 'Usage limit exceeded');
-          }
+        // Check usage limits and increment if allowed
+        const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+        if (!usageCheck.allowed) {
+          // Create a specific error type for usage limits
+          const error = new Error(usageCheck.error || 'Usage limit exceeded');
+          (error as any).code = 'USAGE_LIMIT_EXCEEDED';
+          (error as any).remaining = usageCheck.remaining || 0;
+          throw error;
+        }
 
-          // Increment usage before processing
-          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
-          if (!usageResult.success) {
-            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
-            // Don't throw error - allow the request to continue
-          }
-        } catch (usageError) {
-          console.warn('Usage tracking error (continuing anyway):', usageError);
-          // Don't throw error - allow the request to continue for backward compatibility
+        // Increment usage before processing
+        const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+        if (!usageResult.success) {
+          console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
+          // Don't throw error - allow the request to continue for tracking failures (not limit exceeded)
         }
       }
 
@@ -225,22 +224,21 @@ export function initializeIpcHandlers(appState: AppState): void {
       const accessToken = appState.authService.getAccessToken();
       
       if (user && accessToken) {
-        try {
-          // Check usage limits and increment if allowed
-          const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
-          if (!usageCheck.allowed) {
-            throw new Error(usageCheck.error || 'Usage limit exceeded');
-          }
+        // Check usage limits and increment if allowed
+        const usageCheck = await appState.usageTracker.checkCanAskQuestion(accessToken);
+        if (!usageCheck.allowed) {
+          // Create a specific error type for usage limits
+          const error = new Error(usageCheck.error || 'Usage limit exceeded');
+          (error as any).code = 'USAGE_LIMIT_EXCEEDED';
+          (error as any).remaining = usageCheck.remaining || 0;
+          throw error;
+        }
 
-          // Increment usage before processing
-          const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
-          if (!usageResult.success) {
-            console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
-            // Don't throw error - allow the request to continue
-          }
-        } catch (usageError) {
-          console.warn('Usage tracking error (continuing anyway):', usageError);
-          // Don't throw error - allow the request to continue for backward compatibility
+        // Increment usage before processing
+        const usageResult = await appState.usageTracker.incrementQuestionUsage(accessToken);
+        if (!usageResult.success) {
+          console.warn('Usage tracking failed, but continuing with request:', usageResult.error);
+          // Don't throw error - allow the request to continue for tracking failures (not limit exceeded)
         }
       }
 

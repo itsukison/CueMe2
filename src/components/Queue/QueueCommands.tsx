@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Database,
   Bot,
+  Image,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "../ui/dialog";
 
@@ -229,7 +230,15 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
 
   return (
     <div className="w-fit overflow-visible">
-      <div className="text-xs text-white/90 liquid-glass-bar py-1 px-4 flex items-center justify-center gap-4 draggable-area overflow-visible">
+      <div className="text-xs text-white/90 liquid-glass-bar py-2 px-4 flex items-center justify-center gap-4 draggable-area overflow-visible">
+        {/* Logo */}
+         <div className="flex items-center gap-2">
+           <img src="/logo.png" alt="CueMe Logo" className="w-4 h-4" />
+         </div>
+
+        {/* Separator */}
+        {/* <div className="h-4 w-px bg-white/20" />
+        
         {/* Response Mode Dropdown */}
         <div className="flex items-center gap-2">
           <span className="text-[11px] leading-none">モード</span>
@@ -264,18 +273,6 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
 
         {/* Separator */}
         <div className="h-4 w-px bg-white/20" />
-        {/* Show/Hide */}
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] leading-none">表示/非表示</span>
-          <div className="flex gap-1">
-            <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
-              <Command className="w-3 h-3" />
-            </button>
-            <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70">
-              B
-            </button>
-          </div>
-        </div>
 
         {/* Screenshot */}
         {/* Removed screenshot button from main bar for seamless screenshot-to-LLM UX */}
@@ -306,7 +303,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           >
             {isRecording ? (
               <>
-                <MicOff className="w-3 h-3 mr-1" />
+                <MicOff className="w-4 h-4 mr-1" />
                 <span className="animate-pulse">録音停止</span>
               </>
             ) : (
@@ -347,9 +344,12 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
       </div>
       {/* Audio Result Display */}
       {audioResult && (
-        <div className="mt-2 w-96 liquid-glass chat-container p-4 text-white/90 text-xs relative">
-          {/* AI Response Label */}
-          <div className="mb-2 text-sm font-medium text-white/80">AI回答</div>
+        <div className="mt-2 w-full max-w-md liquid-glass chat-container p-4 text-white/90 text-xs relative">
+          {/* AI Response Label with Logo */}
+          <div className="mb-2 text-sm font-medium text-white/80 flex items-center gap-2">
+            <img src="/logo.png" alt="CueMe Logo" className="w-4 h-4" />
+            <span>AI回答</span>
+          </div>
 
           {/* Close Button */}
           <button
@@ -401,7 +401,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                 }`}
                 onClick={() => handleResponseModeChange({ type: "plain" })}
               >
-                <Bot className="w-3 h-3" />
+                <Bot className="w-4 h-4" />
                 <div className="text-left">
                   <div className="font-medium">プレーン回答</div>
                   <div className="text-[10px] text-white/50">
@@ -437,7 +437,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                         })
                       }
                     >
-                      <Database className="w-3 h-3" />
+                      <Database className="w-4 h-4" />
                       <div className="text-left flex-1">
                         <div className="font-medium truncate">
                           {collection.name}

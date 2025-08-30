@@ -6,6 +6,7 @@ import {
   Toast,
   ToastTitle,
   ToastDescription,
+  ToastAction,
   ToastVariant,
   ToastMessage,
 } from "../components/ui/toast";
@@ -31,6 +32,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
     description: "",
     variant: "neutral",
   });
+  const [showUsageLimitToast, setShowUsageLimitToast] = useState(false);
 
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [tooltipHeight, setTooltipHeight] = useState(0);
@@ -90,6 +92,26 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
     setToastOpen(true);
   };
 
+  const handleUsageLimitError = () => {
+    // Show usage limit specific toast
+    setShowUsageLimitToast(true);
+    
+    // Add a message to chat indicating the limit was reached
+    setChatMessages((msgs) => [
+      ...msgs,
+      { 
+        role: "gemini", 
+        text: "月間質問制限に達しました。続行するにはプランをアップグレードしてください。" 
+      },
+    ]);
+  };
+
+  const handleSubscriptionUpgrade = () => {
+    window.electronAPI.invoke("open-external-url", "https://www.cueme.ink/dashboard/subscription")
+      .catch(console.error);
+    setShowUsageLimitToast(false);
+  };
+
   const handleDeleteScreenshot = async (index: number) => {
     const screenshotToDelete = screenshots[index];
 
@@ -137,11 +159,19 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
       }
 
       setChatMessages((msgs) => [...msgs, { role: "gemini", text: response }]);
-    } catch (err) {
-      setChatMessages((msgs) => [
-        ...msgs,
-        { role: "gemini", text: "エラー: " + String(err) },
-      ]);
+    } catch (err: any) {
+      // Check if this is a usage limit error
+      if (err.message && err.message.includes('Usage limit exceeded') || 
+          err.message && err.message.includes('Monthly limit') ||
+          err.message && err.message.includes('Insufficient usage remaining')) {
+        handleUsageLimitError();
+      } else {
+        // Handle other errors normally
+        setChatMessages((msgs) => [
+          ...msgs,
+          { role: "gemini", text: "エラー: " + String(err) },
+        ]);
+      }
     } finally {
       setChatLoading(false);
       chatInputRef.current?.focus();
@@ -222,11 +252,19 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
             { role: "gemini", text: response.text },
           ]);
         }
-      } catch (err) {
-        setChatMessages((msgs) => [
-          ...msgs,
-          { role: "gemini", text: "エラー: " + String(err) },
-        ]);
+      } catch (err: any) {
+        // Check if this is a usage limit error
+        if (err.message && err.message.includes('Usage limit exceeded') || 
+            err.message && err.message.includes('Monthly limit') ||
+            err.message && err.message.includes('Insufficient usage remaining')) {
+          handleUsageLimitError();
+        } else {
+          // Handle other errors normally
+          setChatMessages((msgs) => [
+            ...msgs,
+            { role: "gemini", text: "エラー: " + String(err) },
+          ]);
+        }
       } finally {
         setChatLoading(false);
       }
@@ -348,6 +386,27 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
             <ToastDescription>{toastMessage.description}</ToastDescription>
           </Toast>
 
+          {/* Usage Limit Toast with Action Button */}
+          <Toast
+            open={showUsageLimitToast}
+            onOpenChange={setShowUsageLimitToast}
+            variant="error"
+            duration={8000}
+            className="bg-black/80 backdrop-blur-md border border-red-500/20"
+          >
+            <ToastTitle className="text-red-400">月間利用制限に達しました</ToastTitle>
+            <ToastDescription className="text-gray-300 mb-3">
+              続行するにはプランをアップグレードしてください
+            </ToastDescription>
+            <ToastAction
+              altText="プランをアップグレード"
+              onClick={handleSubscriptionUpgrade}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+            >
+              プランをアップグレード
+            </ToastAction>
+          </Toast>
+
           {/* Main Bar with Logout Button */}
           <div className="w-fit overflow-visible relative">
             <div className="flex items-center gap-2">
@@ -427,7 +486,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
               <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg morphism-dropdown max-h-64 min-h-[120px] glass-content morphism-scrollbar">
                 {chatMessages.length === 0 ? (
                   <div className="text-sm text-white/80 text-center mt-8 pr-8">
-                    <MessageCircle className="w-5 h-5 mx-auto mb-2 text-white/60" />
+                    <img src="/logo.png" alt="CueMe Logo" className="w-5 h-5 mx-auto mb-2" />
                     CueMeとチャット
                     <br />
                     <span className="text-xs text-white/50">
