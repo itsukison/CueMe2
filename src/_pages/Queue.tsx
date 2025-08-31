@@ -95,15 +95,6 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
   const handleUsageLimitError = () => {
     // Show usage limit specific toast
     setShowUsageLimitToast(true);
-    
-    // Add a message to chat indicating the limit was reached
-    setChatMessages((msgs) => [
-      ...msgs,
-      { 
-        role: "gemini", 
-        text: "月間質問制限に達しました。続行するにはプランをアップグレードしてください。" 
-      },
-    ]);
   };
 
   const handleSubscriptionUpgrade = () => {
@@ -323,6 +314,11 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
       setIsChatOpen((prev) => !prev);
     };
 
+    // Handle usage limit events from voice recording
+    const handleUsageLimitExceeded = () => {
+      handleUsageLimitError();
+    };
+
     // Set up keyboard shortcut listeners using proper electronAPI pattern
     const setupIpcListeners = () => {
       try {
@@ -344,7 +340,14 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
     };
 
     const cleanup = setupIpcListeners();
-    return cleanup;
+    
+    // Add custom event listener for usage limit exceeded
+    document.addEventListener('usage-limit-exceeded', handleUsageLimitExceeded);
+    
+    return () => {
+      cleanup();
+      document.removeEventListener('usage-limit-exceeded', handleUsageLimitExceeded);
+    };
   }, []);
 
   // Click outside handler for profile dropdown
@@ -384,27 +387,6 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
           >
             <ToastTitle>{toastMessage.title}</ToastTitle>
             <ToastDescription>{toastMessage.description}</ToastDescription>
-          </Toast>
-
-          {/* Usage Limit Toast with Action Button */}
-          <Toast
-            open={showUsageLimitToast}
-            onOpenChange={setShowUsageLimitToast}
-            variant="error"
-            duration={8000}
-            className="bg-black/80 backdrop-blur-md border border-red-500/20"
-          >
-            <ToastTitle className="text-red-400">月間利用制限に達しました</ToastTitle>
-            <ToastDescription className="text-gray-300 mb-3">
-              続行するにはプランをアップグレードしてください
-            </ToastDescription>
-            <ToastAction
-              altText="プランをアップグレード"
-              onClick={handleSubscriptionUpgrade}
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
-            >
-              プランをアップグレード
-            </ToastAction>
           </Toast>
 
           {/* Main Bar with Logout Button */}
@@ -458,6 +440,54 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
               </div>
             </div>
           </div>
+          
+          {/* Usage Limit Notification - Below the bar */}
+          {showUsageLimitToast && (
+            <div className="mt-2 w-full max-w-md liquid-glass chat-container p-4 text-white/90 text-xs relative bg-red-500/10 border border-red-500/20">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowUsageLimitToast(false)}
+                className="absolute top-2 right-2 w-5 h-5 rounded-full morphism-button flex items-center justify-center"
+                type="button"
+                title="閉じる"
+              >
+                <svg
+                  className="w-2.5 h-2.5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              {/* Error Icon and Title */}
+              <div className="mb-2 text-sm font-medium text-red-400 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>月間利用制限に達しました</span>
+              </div>
+
+              {/* Description */}
+              <div className="mb-3 text-white/80 pr-8">
+                続行するにはプランをアップグレードしてください
+              </div>
+
+              {/* Upgrade Button */}
+              <button
+                onClick={handleSubscriptionUpgrade}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-medium transition-colors morphism-button"
+              >
+                プランをアップグレード
+              </button>
+            </div>
+          )}
           {/* Conditional Chat Interface */}
           {isChatOpen && (
             <div className="mt-4 w-full mx-auto liquid-glass chat-container p-4 flex flex-col relative">

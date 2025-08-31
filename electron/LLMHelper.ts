@@ -200,6 +200,14 @@ ${JSON.stringify(problemInfo, null, 2)}
 
   public async analyzeAudioFromBase64(data: string, mimeType: string, collectionId?: string) {
     try {
+      // Debug logging for RAG functionality
+      console.log('[LLMHelper] analyzeAudioFromBase64 Debug:', {
+        hasCollectionId: !!collectionId,
+        collectionId: collectionId,
+        hasQnAService: !!this.qnaService,
+        mimeType: mimeType
+      });
+      
       const audioPart = {
         inlineData: {
           data,
@@ -214,17 +222,38 @@ ${JSON.stringify(problemInfo, null, 2)}
       const transcriptionResponse = await transcriptionResult.response;
       const transcribedText = transcriptionResponse.text();
       
+      console.log('[LLMHelper] Transcription result:', {
+        transcribedTextLength: transcribedText.length,
+        transcribedText: transcribedText.substring(0, 100) + '...' // First 100 chars for debugging
+      });
+      
       // If we have a collection ID, use RAG to enhance the response
       if (collectionId && this.qnaService) {
+        console.log('[LLMHelper] Using RAG enhancement with collection:', collectionId);
         const ragContext = await this.searchRAGContext(transcribedText, collectionId);
+        
+        console.log('[LLMHelper] RAG context result:', {
+          hasContext: ragContext.hasContext,
+          resultsCount: ragContext.results.length,
+          collectionName: ragContext.collectionName
+        });
+        
         const enhancedPrompt = this.formatRAGPrompt(transcribedText, ragContext);
         
         const result = await this.model.generateContent(enhancedPrompt);
         const response = await result.response;
         let text = response.text();
         text = this.cleanResponseText(text);
+        
+        console.log('[LLMHelper] RAG-enhanced response generated, length:', text.length);
         return { text, timestamp: Date.now(), ragContext };
       } else {
+        console.log('[LLMHelper] Using basic audio analysis without RAG - Conditions not met:', {
+          hasCollectionId: !!collectionId,
+          collectionIdValue: collectionId,
+          hasQnAService: !!this.qnaService,
+          qnaServiceType: this.qnaService?.constructor?.name || 'undefined'
+        });
         // Use basic audio analysis without RAG
         const prompt = `${this.systemPrompt}
 

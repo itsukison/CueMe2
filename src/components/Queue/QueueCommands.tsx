@@ -179,6 +179,14 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
 
   const handleRecordClick = async () => {
     if (!isRecording) {
+      // Debug current mode before recording
+      console.log('[QueueCommands] Starting audio recording with mode:', {
+        type: responseMode.type,
+        collectionId: responseMode.collectionId,
+        collectionName: responseMode.collectionName,
+        willUseRAG: responseMode.type === "qna" && !!responseMode.collectionId
+      });
+      
       // Start recording
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -200,14 +208,45 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                 responseMode.type === "qna"
                   ? responseMode.collectionId
                   : undefined;
+              
+              // Debug logging for RAG functionality
+              console.log('[QueueCommands] Audio RAG Debug:', {
+                responseMode: responseMode,
+                responseModeType: responseMode.type,
+                responseModeCollectionId: responseMode.collectionId,
+                responseModeCollectionName: responseMode.collectionName,
+                collectionId: collectionId,
+                isQnAMode: responseMode.type === "qna",
+                hasCollectionId: !!collectionId,
+                willUseRAG: responseMode.type === "qna" && !!collectionId
+              });
+              
               const result = await window.electronAPI.analyzeAudioFromBase64(
                 base64Data,
                 blob.type,
                 collectionId
               );
+              
+              // Debug the result
+              console.log('[QueueCommands] Audio analysis result:', {
+                hasResult: !!result,
+                textLength: result?.text?.length || 0,
+                hasRagContext: !!(result as any)?.ragContext
+              });
+              
               setAudioResult(result.text);
-            } catch (err) {
-              setAudioResult("Audio analysis failed.");
+            } catch (err: any) {
+              // Check if this is a usage limit error
+              if (err.message && err.message.includes('Usage limit exceeded') || 
+                  err.message && err.message.includes('Monthly limit') ||
+                  err.message && err.message.includes('Insufficient usage remaining')) {
+                // Show usage limit notification by triggering an event
+                const limitEvent = new CustomEvent('usage-limit-exceeded');
+                document.dispatchEvent(limitEvent);
+                return; // Don't set audio result for usage limit errors
+              } else {
+                setAudioResult("Audio analysis failed.");
+              }
             }
           };
           reader.readAsDataURL(blob);
@@ -237,7 +276,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
          </div>
 
         {/* Separator */}
-        {/* <div className="h-4 w-px bg-white/20" />
+        {/* <div className="h-4 w-px bg-white/20" /> */}
         
         {/* Response Mode Dropdown */}
         <div className="flex items-center gap-2">
@@ -342,9 +381,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           <LogOut className="w-4 h-4" />
         </button>
       </div>
-      {/* Audio Result Display */}
+      
+      {/* Audio Result Display - positioned below the floating bar */}
       {audioResult && (
-        <div className="mt-2 w-full max-w-md liquid-glass chat-container p-4 text-white/90 text-xs relative">
+        <div className="mt-2 liquid-glass chat-container p-4 text-white/90 text-xs relative" style={{ minWidth: '400px', maxWidth: '600px' }}>
           {/* AI Response Label with Logo */}
           <div className="mb-2 text-sm font-medium text-white/80 flex items-center gap-2">
             <img src="/logo.png" alt="CueMe Logo" className="w-4 h-4" />
