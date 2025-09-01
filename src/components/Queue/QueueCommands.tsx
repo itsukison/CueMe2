@@ -108,7 +108,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
     if (isDropdownOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + window.scrollY + 4, // 4px gap
+        top: rect.bottom + window.scrollY + 16, // 16px gap (consistent with bar-to-chat spacing)
         left: rect.left + window.scrollX,
         width: Math.max(192, rect.width), // Min width 192px (w-48)
       });
@@ -186,7 +186,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         collectionName: responseMode.collectionName,
         willUseRAG: responseMode.type === "qna" && !!responseMode.collectionId
       });
-      
+
       // Start recording
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -208,7 +208,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                 responseMode.type === "qna"
                   ? responseMode.collectionId
                   : undefined;
-              
+
               // Debug logging for RAG functionality
               console.log('[QueueCommands] Audio RAG Debug:', {
                 responseMode: responseMode,
@@ -220,26 +220,26 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                 hasCollectionId: !!collectionId,
                 willUseRAG: responseMode.type === "qna" && !!collectionId
               });
-              
+
               const result = await window.electronAPI.analyzeAudioFromBase64(
                 base64Data,
                 blob.type,
                 collectionId
               );
-              
+
               // Debug the result
               console.log('[QueueCommands] Audio analysis result:', {
                 hasResult: !!result,
                 textLength: result?.text?.length || 0,
                 hasRagContext: !!(result as any)?.ragContext
               });
-              
+
               setAudioResult(result.text);
             } catch (err: any) {
               // Check if this is a usage limit error
-              if (err.message && err.message.includes('Usage limit exceeded') || 
-                  err.message && err.message.includes('Monthly limit') ||
-                  err.message && err.message.includes('Insufficient usage remaining')) {
+              if (err.message && err.message.includes('Usage limit exceeded') ||
+                err.message && err.message.includes('Monthly limit') ||
+                err.message && err.message.includes('Insufficient usage remaining')) {
                 // Show usage limit notification by triggering an event
                 const limitEvent = new CustomEvent('usage-limit-exceeded');
                 document.dispatchEvent(limitEvent);
@@ -269,15 +269,72 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
 
   return (
     <div className="w-fit overflow-visible">
-      <div className="text-xs text-white/90 liquid-glass-bar py-2 px-4 flex items-center justify-center gap-4 draggable-area overflow-visible">
+      <div className="text-xs text-white/90 liquid-glass-bar py-2 px-3 flex items-center justify-center gap-3 draggable-area overflow-visible">
         {/* Logo */}
-         <div className="flex items-center gap-2">
-           <img src="/logo.png" alt="CueMe Logo" className="w-4 h-4" />
-         </div>
+        <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="CueMe Logo" className="w-4 h-4" />
+        </div>
 
         {/* Separator */}
         {/* <div className="h-4 w-px bg-white/20" /> */}
-        
+
+
+
+        {/* Screenshot */}
+        {/* Removed screenshot button from main bar for seamless screenshot-to-LLM UX */}
+
+        {/* Solve Command */}
+        {screenshots.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] leading-none">Solve</span>
+            <div className="flex gap-1">
+              <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
+                <Command className="w-3 h-3" />
+              </button>
+              <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70">
+                ↵
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Voice Recording Button */}
+        <div className="flex items-center gap-2">
+          <button
+            className={`morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 ${isRecording ? "!bg-red-500/70 hover:!bg-red-500/90" : ""
+              }`}
+            onClick={handleRecordClick}
+            type="button"
+          >
+            {isRecording ? (
+              <>
+                <MicOff className="w-4 h-4 mr-1" />
+                <span className="animate-pulse">録音停止</span>
+              </>
+            ) : (
+              <>
+                <Mic className="w-3 h-3 mr-1" />
+                <span>録音開始</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Chat Button */}
+        <div className="flex items-center gap-2">
+          <button
+            className="morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1"
+            onClick={onChatToggle}
+            type="button"
+          >
+            <MessageCircle className="w-3 h-3 mr-1" />
+            チャット
+          </button>
+        </div>
+
+        {/* Separator */}
+        <div className="h-4 w-px bg-white/20" />
+
         {/* Response Mode Dropdown */}
         <div className="flex items-center gap-2">
           <span className="text-[11px] leading-none">モード</span>
@@ -302,69 +359,13 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                 </>
               )}
               <ChevronDown
-                className={`w-3 h-3 transition-transform ${
-                  isDropdownOpen ? "rotate-180" : ""
-                }`}
+                className={`w-3 h-3 transition-transform ${isDropdownOpen ? "rotate-180" : ""
+                  }`}
               />
             </button>
           </div>
         </div>
 
-        {/* Separator */}
-        <div className="h-4 w-px bg-white/20" />
-
-        {/* Screenshot */}
-        {/* Removed screenshot button from main bar for seamless screenshot-to-LLM UX */}
-
-        {/* Solve Command */}
-        {screenshots.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] leading-none">Solve</span>
-            <div className="flex gap-1">
-              <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70 flex items-center">
-                <Command className="w-3 h-3" />
-              </button>
-              <button className="morphism-button px-1.5 py-1 text-[11px] leading-none text-white/70">
-                ↵
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Voice Recording Button */}
-        <div className="flex items-center gap-2">
-          <button
-            className={`morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1 ${
-              isRecording ? "!bg-red-500/70 hover:!bg-red-500/90" : ""
-            }`}
-            onClick={handleRecordClick}
-            type="button"
-          >
-            {isRecording ? (
-              <>
-                <MicOff className="w-4 h-4 mr-1" />
-                <span className="animate-pulse">録音停止</span>
-              </>
-            ) : (
-              <>
-                <Mic className="w-3 h-3 mr-1" />
-                <span>音声録音</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Chat Button */}
-        <div className="flex items-center gap-2">
-          <button
-            className="morphism-button px-2 py-1 text-[11px] leading-none text-white/70 flex items-center gap-1"
-            onClick={onChatToggle}
-            type="button"
-          >
-            <MessageCircle className="w-3 h-3 mr-1" />
-            チャット
-          </button>
-        </div>
 
         {/* Add this button in the main button row, before the separator and sign out */}
         {/* Remove the Chat button */}
@@ -381,7 +382,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           <LogOut className="w-4 h-4" />
         </button>
       </div>
-      
+
       {/* Audio Result Display - positioned below the floating bar */}
       {audioResult && (
         <div className="mt-2 liquid-glass chat-container p-4 text-white/90 text-xs relative" style={{ minWidth: '400px', maxWidth: '600px' }}>
@@ -434,11 +435,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
             <div className="p-1">
               {/* Plain Mode Option */}
               <button
-                className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${
-                  responseMode.type === "plain"
+                className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${responseMode.type === "plain"
                     ? "bg-white/20 text-white"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
-                }`}
+                  }`}
                 onClick={() => handleResponseModeChange({ type: "plain" })}
               >
                 <Bot className="w-4 h-4" />
@@ -463,12 +463,11 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                   collections.map((collection) => (
                     <button
                       key={collection.id}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${
-                        responseMode.type === "qna" &&
-                        responseMode.collectionId === collection.id
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[11px] rounded-md transition-colors ${responseMode.type === "qna" &&
+                          responseMode.collectionId === collection.id
                           ? "bg-white/20 text-white"
                           : "text-white/70 hover:bg-white/10 hover:text-white"
-                      }`}
+                        }`}
                       onClick={() =>
                         handleResponseModeChange({
                           type: "qna",

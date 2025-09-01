@@ -152,9 +152,9 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
       setChatMessages((msgs) => [...msgs, { role: "gemini", text: response }]);
     } catch (err: any) {
       // Check if this is a usage limit error
-      if (err.message && err.message.includes('Usage limit exceeded') || 
-          err.message && err.message.includes('Monthly limit') ||
-          err.message && err.message.includes('Insufficient usage remaining')) {
+      if (err.message && err.message.includes('Usage limit exceeded') ||
+        err.message && err.message.includes('Monthly limit') ||
+        err.message && err.message.includes('Insufficient usage remaining')) {
         handleUsageLimitError();
       } else {
         // Handle other errors normally
@@ -245,9 +245,9 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
         }
       } catch (err: any) {
         // Check if this is a usage limit error
-        if (err.message && err.message.includes('Usage limit exceeded') || 
-            err.message && err.message.includes('Monthly limit') ||
-            err.message && err.message.includes('Insufficient usage remaining')) {
+        if (err.message && err.message.includes('Usage limit exceeded') ||
+          err.message && err.message.includes('Monthly limit') ||
+          err.message && err.message.includes('Insufficient usage remaining')) {
           handleUsageLimitError();
         } else {
           // Handle other errors normally
@@ -336,14 +336,14 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
       } catch (error) {
         console.log("IPC setup skipped:", error);
       }
-      return () => {};
+      return () => { };
     };
 
     const cleanup = setupIpcListeners();
-    
+
     // Add custom event listener for usage limit exceeded
     document.addEventListener('usage-limit-exceeded', handleUsageLimitExceeded);
-    
+
     return () => {
       cleanup();
       document.removeEventListener('usage-limit-exceeded', handleUsageLimitExceeded);
@@ -409,16 +409,16 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                   onClick={() =>
                     setIsProfileDropdownOpen(!isProfileDropdownOpen)
                   }
-                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black/85 hover:bg-black/90 border border-white/25"
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 bg-black/60 hover:bg-black/70 border border-white/25"
                   type="button"
                   title="プロフィール"
                 >
-                  <User className="w-3 h-3 text-emerald-600" />
+                  <User className="w-4 h-4 text-emerald-600" />
                 </button>
 
                 {/* Profile Dropdown Menu */}
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-32 morphism-dropdown shadow-lg z-50">
+                  <div className="absolute right-0 mt-4 w-32 morphism-dropdown shadow-lg z-50">
                     <div className="py-1">
                       <button
                         onClick={handleSettings}
@@ -440,7 +440,7 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
               </div>
             </div>
           </div>
-          
+
           {/* Usage Limit Notification - Below the bar */}
           {showUsageLimitToast && (
             <div className="mt-2 w-full max-w-md liquid-glass chat-container p-4 text-white/90 text-xs relative bg-red-500/10 border border-red-500/20">
@@ -513,54 +513,52 @@ const Queue: React.FC<QueueProps> = ({ setView, onSignOut }) => {
                 </svg>
               </button>
 
-              <div className="flex-1 overflow-y-auto mb-3 p-3 rounded-lg morphism-dropdown max-h-64 min-h-[120px] glass-content morphism-scrollbar">
-                {chatMessages.length === 0 ? (
-                  <div className="text-sm text-white/80 text-center mt-8 pr-8">
-                    <img src="/logo.png" alt="CueMe Logo" className="w-5 h-5 mx-auto mb-2" />
-                    CueMeとチャット
-                    <br />
-                    <span className="text-xs text-white/50">
-                      スクリーンショットを撮る (Cmd+H) で自動分析
-                    </span>
-                  </div>
-                ) : (
-                  chatMessages.map((msg, idx) => (
+              {chatMessages.length === 0 ? (
+                <div className="text-sm text-white/80 text-center mt-8 pr-8 mb-3">
+                  <img src="/logo.png" alt="CueMe Logo" className="w-5 h-5 mx-auto mb-2" />
+                  CueMeとチャット
+                  <br />
+                  <span className="text-xs text-white/50">
+                    スクリーンショットを撮る (Cmd+H) で自動分析
+                  </span>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto mb-3 max-h-64">
+                  {chatMessages.map((msg, idx) => (
                     <div
                       key={idx}
-                      className={`w-full flex ${
-                        msg.role === "user" ? "justify-end" : "justify-start"
-                      } mb-3`}
+                      className={`w-full flex ${msg.role === "user" ? "justify-end" : "justify-start"
+                        } mb-3`}
                     >
                       <div
-                        className={`max-w-[80%] px-3 py-1.5 rounded-xl text-xs border ${
-                          msg.role === "user"
-                            ? "bg-gray-800/60 backdrop-blur-md text-gray-100 ml-12 border-gray-600/40"
-                            : "morphism-dropdown text-white/90 mr-12"
-                        }`}
+                        className={`max-w-[80%] px-3 py-1.5 rounded-xl text-xs border ${msg.role === "user"
+                          ? "bg-gray-800/60 backdrop-blur-md text-gray-100 ml-12 border-gray-600/40"
+                          : "morphism-dropdown text-white/90 mr-12"
+                          }`}
                         style={{ wordBreak: "break-word", lineHeight: "1.4" }}
                       >
                         {msg.text}
                       </div>
                     </div>
-                  ))
-                )}
-                {chatLoading && (
-                  <div className="flex justify-start mb-3">
-                    <div className="morphism-dropdown text-white/80 px-3 py-1.5 rounded-xl text-xs mr-12">
-                      <span className="inline-flex items-center">
-                        <span className="animate-pulse text-white/40">●</span>
-                        <span className="animate-pulse animation-delay-200 text-white/40">
-                          ●
-                        </span>
-                        <span className="animate-pulse animation-delay-400 text-white/40">
-                          ●
-                        </span>
-                        <span className="ml-2">Geminiが考え中...</span>
+                  ))}
+                </div>
+              )}
+              {chatLoading && (
+                <div className="flex justify-start mb-3">
+                  <div className="morphism-dropdown text-white/80 px-3 py-1.5 rounded-xl text-xs mr-12">
+                    <span className="inline-flex items-center">
+                      <span className="animate-pulse text-white/40">●</span>
+                      <span className="animate-pulse animation-delay-200 text-white/40">
+                        ●
                       </span>
-                    </div>
+                      <span className="animate-pulse animation-delay-400 text-white/40">
+                        ●
+                      </span>
+                      <span className="ml-2">Geminiが考え中...</span>
+                    </span>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
               <form
                 className="flex gap-2 items-center glass-content"
                 onSubmit={(e) => {

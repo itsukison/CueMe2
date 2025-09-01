@@ -43,13 +43,13 @@
 
 .draggable-area {
   -webkit-app-region: drag;
-  height: 32px;
+  height: 38px;
   width: 100%;
   background: transparent;
   cursor: move;
   position: relative;
   z-index: 1000;
-  border-radius: 1rem 1rem 0 0;
+  border-radius: 1.25rem 1.25rem 0 0;
 }
 
 /* Make sure buttons and interactive elements are not draggable */
@@ -114,12 +114,12 @@ textarea,
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   position: relative;
   overflow: hidden;
-  height: 32px !important;
-  min-height: 32px !important;
-  max-height: 32px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
 }
 
 /* Removed shimmer effect for bar variant */
